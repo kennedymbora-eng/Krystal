@@ -1,1 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PhoneShop">
+<meta name="theme-color" content="#0a0a0f">
+<title>PhoneShop Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
 
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #00e5a0;
+    --accent2: #ff6b35;
+    --accent3: #4d9fff;
+    --text: #f0f0f8;
+    --muted: #6b6b88;
+    --danger: #ff4466;
+    --warning: #ffcc00;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: linear-gradient(135deg, #0d0d18 0%, #13131a 100%);
+    padding: 20px 20px 0;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .app-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -0.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .app-title span { color: var(--accent); }
+  .subtitle { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-top: 2px; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 0; margin-top: 16px;
+  }
+  .tab {
+    flex: 1; padding: 10px 4px; text-align: center;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    border: none; background: transparent; color: var(--muted);
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* ── CONTENT ── */
+  .page { display: none; padding: 16px; animation: fadeIn 0.25s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── DASHBOARD STATS ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.green::before { background: var(--accent); }
+  .stat-card.orange::before { background: var(--accent2); }
+  .stat-card.blue::before { background: var(--accent3); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-label { font-size: 9px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-top: 4px; }
+  .stat-value.green { color: var(--accent); }
+  .stat-value.orange { color: var(--accent2); }
+  .stat-value.blue { color: var(--accent3); }
+  .stat-value.red { color: var(--danger); }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  }
+  .btn-add {
+    background: var(--accent); color: #000;
+    border: none; border-radius: 8px;
+    padding: 7px 14px; font-family: 'Syne', sans-serif;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.5px; transition: opacity 0.2s;
+  }
+  .btn-add:hover { opacity: 0.85; }
+  .btn-add.orange { background: var(--accent2); }
+  .btn-add.blue { background: var(--accent3); }
+
+  /* ── ITEM CARDS ── */
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .item-card:hover { border-color: var(--accent); }
+  .item-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .item-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+  .item-category { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .badge {
+    font-size: 9px; font-weight: 500; padding: 3px 8px;
+    border-radius: 20px; letter-spacing: 0.5px;
+  }
+  .badge-stock { background: rgba(0,229,160,0.12); color: var(--accent); }
+  .badge-low { background: rgba(255,204,0,0.12); color: var(--warning); }
+  .badge-out { background: rgba(255,68,102,0.12); color: var(--danger); }
+  .item-prices {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px; margin-top: 12px;
+    padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .price-block { text-align: center; }
+  .price-lbl { font-size: 8px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .price-val { font-size: 13px; font-weight: 500; margin-top: 2px; }
+  .price-val.profit { color: var(--accent); }
+  .item-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-sm {
+    flex: 1; padding: 7px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 10px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-sm:hover { background: var(--surface2); color: var(--text); }
+  .btn-sell { border-color: var(--accent); color: var(--accent); }
+  .btn-sell:hover { background: rgba(0,229,160,0.1) !important; }
+  .btn-del { border-color: var(--danger); color: var(--danger); }
+  .btn-del:hover { background: rgba(255,68,102,0.1) !important; }
+
+  /* ── REPAIRS ── */
+  .repair-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    margin-bottom: 10px;
+  }
+  .repair-top { display: flex; justify-content: space-between; align-items: center; }
+  .repair-device { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+  .repair-id { font-size: 9px; color: var(--muted); }
+  .status-badge { font-size: 9px; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .status-pending { background: rgba(255,204,0,0.12); color: var(--warning); }
+  .status-progress { background: rgba(77,159,255,0.12); color: var(--accent3); }
+  .status-done { background: rgba(0,229,160,0.12); color: var(--accent); }
+  .status-cancelled { background: rgba(255,68,102,0.12); color: var(--danger); }
+  .repair-detail { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .repair-meta {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px; margin-top: 12px;
+    padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .meta-block { }
+  .meta-lbl { font-size: 8px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .meta-val { font-size: 12px; margin-top: 2px; }
+  .meta-val.accent { color: var(--accent); }
+  .repair-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .btn-status {
+    flex: 1; padding: 7px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 9px; cursor: pointer; transition: all 0.2s;
+    text-align: center;
+  }
+  .btn-status:hover { background: var(--surface2); color: var(--text); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+    z-index: 200; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 32px;
+    width: 100%; max-width: 430px;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 18px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 9px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .form-input, .form-select {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 13px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-select option { background: var(--surface2); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-cancel {
+    flex: 1; padding: 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .btn-save {
+    flex: 2; padding: 12px; border-radius: 10px;
+    border: none; background: var(--accent); color: #000;
+    font-family: 'Syne', sans-serif; font-size: 12px;
+    font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-save:hover { opacity: 0.85; }
+  .btn-save.orange { background: var(--accent2); }
+  .btn-save.blue { background: var(--accent3); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .empty-sub { font-size: 11px; margin-top: 4px; }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    width: 100%; padding: 10px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    outline: none; margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .search-bar:focus { border-color: var(--accent); }
+  .search-bar::placeholder { color: var(--muted); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #000;
+    padding: 10px 20px; border-radius: 20px;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    z-index: 300; opacity: 0; transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 16px;
+  }
+  .nav-item {
+    flex: 1; text-align: center; padding: 6px 0;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 9px; color: var(--muted); letter-spacing: 0.5px; margin-top: 2px; }
+  .nav-item.active .nav-label { color: var(--accent); }
+  .nav-item.active .nav-icon { filter: drop-shadow(0 0 6px var(--accent)); }
+
+  .content-area { padding-bottom: 80px; }
+
+  /* LOW STOCK */
+  .low-stock-alert {
+    background: rgba(255,204,0,0.08);
+    border: 1px solid rgba(255,204,0,0.2);
+    border-radius: 10px; padding: 10px 14px;
+    margin-bottom: 14px; font-size: 11px; color: var(--warning);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── CONFIRM DIALOG ── */
+  .confirm-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+    z-index: 400; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px; padding: 28px 24px;
+    width: 100%; max-width: 320px;
+    text-align: center;
+    animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .confirm-icon { font-size: 36px; margin-bottom: 12px; }
+  .confirm-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .confirm-msg { font-size: 11px; color: var(--muted); margin-bottom: 22px; }
+  .confirm-btns { display: flex; gap: 10px; }
+  .btn-confirm-no {
+    flex: 1; padding: 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .btn-confirm-yes {
+    flex: 1; padding: 12px; border-radius: 10px;
+    border: none; background: var(--danger); color: #fff;
+    font-family: 'Syne', sans-serif; font-size: 12px;
+    font-weight: 700; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">📱 Phone<span>Shop</span></div>
+  <div class="subtitle">INVENTORY & REPAIR MANAGER</div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="switchTab('stock')">Stock</button>
+    <button class="tab" onclick="switchTab('repairs')">Repairs</button>
+  </div>
+</div>
+
+<div class="content-area">
+
+  <!-- ── DASHBOARD ── -->
+  <div id="page-dashboard" class="page active">
+    <div style="height:16px"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="section-header">
+      <div class="section-title">Recent Activity</div>
+    </div>
+    <div id="recent-activity"></div>
+  </div>
+
+  <!-- ── STOCK ── -->
+  <div id="page-stock" class="page">
+    <div style="height:16px"></div>
+    <input class="search-bar" placeholder="🔍  Search accessories..." oninput="renderStock(this.value)" id="stock-search">
+    <div class="section-header">
+      <div class="section-title">Accessories</div>
+      <button class="btn-add" onclick="openModal('stock')">+ Add Item</button>
+    </div>
+    <div id="low-stock-alert" class="low-stock-alert" style="display:none">⚠️ Some items have low stock!</div>
+    <div id="stock-list"></div>
+  </div>
+
+  <!-- ── REPAIRS ── -->
+  <div id="page-repairs" class="page">
+    <div style="height:16px"></div>
+    <input class="search-bar" placeholder="🔍  Search repairs..." oninput="renderRepairs(this.value)" id="repair-search">
+    <div class="section-header">
+      <div class="section-title">Repair Jobs</div>
+      <button class="btn-add blue" onclick="openModal('repair')">+ New Job</button>
+    </div>
+    <div id="repair-list"></div>
+  </div>
+
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">Dashboard</div>
+  </div>
+  <div class="nav-item" id="nav-stock" onclick="switchTab('stock')">
+    <div class="nav-icon">📦</div>
+    <div class="nav-label">Stock</div>
+  </div>
+  <div class="nav-item" id="nav-repairs" onclick="switchTab('repairs')">
+    <div class="nav-icon">🔧</div>
+    <div class="nav-label">Repairs</div>
+  </div>
+</div>
+
+<!-- ── ADD STOCK MODAL ── -->
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="stock-modal-title">Add Accessory</div>
+    <div class="form-group">
+      <label class="form-label">Item Name</label>
+      <input class="form-input" id="s-name" placeholder="e.g. iPhone 15 Case">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="s-category">
+        <option>Cases & Covers</option>
+        <option>Screen Protectors</option>
+        <option>Chargers & Cables</option>
+        <option>Earphones / AirPods</option>
+        <option>Power Banks</option>
+        <option>Mounts & Stands</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Buy Price ($)</label>
+        <input class="form-input" id="s-buy" type="number" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sell Price ($)</label>
+        <input class="form-input" id="s-sell" type="number" placeholder="0.00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Stock Quantity</label>
+      <input class="form-input" id="s-qty" type="number" placeholder="0">
+    </div>
+    <input type="hidden" id="s-edit-id">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('stock')">Cancel</button>
+      <button class="btn-save" onclick="saveStock()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD REPAIR MODAL ── -->
+<div class="modal-overlay" id="modal-repair">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="repair-modal-title">New Repair Job</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Customer Name</label>
+        <input class="form-input" id="r-customer" placeholder="Name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone No.</label>
+        <input class="form-input" id="r-phone" placeholder="Number">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Device</label>
+      <input class="form-input" id="r-device" placeholder="e.g. Samsung Galaxy S23">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Issue / Repair Type</label>
+      <input class="form-input" id="r-issue" placeholder="e.g. Screen replacement">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cost ($)</label>
+        <input class="form-input" id="r-cost" type="number" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="r-status">
+          <option value="pending">Pending</option>
+          <option value="progress">In Progress</option>
+          <option value="done">Done</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="r-edit-id">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('repair')">Cancel</button>
+      <button class="btn-save blue" onclick="saveRepair()">Save Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SELL MODAL ── -->
+<div class="modal-overlay" id="modal-sell">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Sell Units</div>
+    <div id="sell-item-name" style="color:var(--muted);font-size:12px;margin-bottom:16px;"></div>
+    <div class="form-group">
+      <label class="form-label">Quantity to Sell</label>
+      <input class="form-input" id="sell-qty" type="number" placeholder="1" min="1">
+    </div>
+    <input type="hidden" id="sell-item-id">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('sell')">Cancel</button>
+      <button class="btn-save orange" onclick="confirmSell()">Confirm Sale</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── CONFIRM DIALOG ── -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete?</div>
+    <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="btn-confirm-no" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm-yes" id="confirm-yes-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+function loadData(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; }
+}
+let stockItems = loadData('ps-stock', []);
+let repairJobs = loadData('ps-repairs', []);
+let activity = loadData('ps-activity', []);
+
+// ── SAMPLE DATA if empty ──
+if(stockItems.length === 0) {
+  stockItems = [
+    { id: uid(), name: 'iPhone 15 Pro Max Case', category: 'Cases & Covers', buy: 3.50, sell: 12.99, qty: 24 },
+    { id: uid(), name: 'USB-C Fast Charger 65W', category: 'Chargers & Cables', buy: 8.00, sell: 24.99, qty: 5 },
+    { id: uid(), name: 'Tempered Glass Pack', category: 'Screen Protectors', buy: 1.20, sell: 6.99, qty: 0 },
+    { id: uid(), name: '20000mAh Power Bank', category: 'Power Banks', buy: 18.00, sell: 49.99, qty: 12 },
+  ];
+}
+if(repairJobs.length === 0) {
+  repairJobs = [
+    { id: uid(), customer: 'James Osei', phone: '0244123456', device: 'iPhone 13', issue: 'Screen Replacement', cost: 85, status: 'done', date: '2026-04-12' },
+    { id: uid(), customer: 'Ama Boateng', phone: '0551234567', device: 'Samsung S22', issue: 'Battery Swap', cost: 55, status: 'progress', date: '2026-04-14' },
+    { id: uid(), customer: 'Kofi Mensah', phone: '0201234567', device: 'Tecno Spark 20', issue: 'Charging Port', cost: 35, status: 'pending', date: '2026-04-14' },
+  ];
+}
+save();
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function save() {
+  try {
+    localStorage.setItem('ps-stock', JSON.stringify(stockItems));
+    localStorage.setItem('ps-repairs', JSON.stringify(repairJobs));
+    localStorage.setItem('ps-activity', JSON.stringify(activity));
+  } catch(e) { /* localStorage blocked in sandboxed preview — data lives in memory */ }
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('.tab')[['dashboard','stock','repairs'].indexOf(tab)].classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='dashboard') renderDashboard();
+  if(tab==='stock') renderStock('');
+  if(tab==='repairs') renderRepairs('');
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const today = new Date().toISOString().split('T')[0];
+
+  // Total profit = sum of all completed sales profit
+  const totalProfit = activity.filter(a=>a.type==='sale').reduce((s,a) => s + (a.profit||0), 0);
+
+  // Today's profit from sales
+  const todayProfit = activity.filter(a=>a.type==='sale' && a.date===today).reduce((s,a) => s + (a.profit||0), 0);
+
+  const inventoryValue = stockItems.reduce((s,i) => s + i.buy * i.qty, 0);
+  const repairRevenue = repairJobs.filter(r=>r.status==='done').reduce((s,r) => s+Number(r.cost), 0);
+  const pendingRepairs = repairJobs.filter(r=>r.status==='pending'||r.status==='progress').length;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card green">
+      <div class="stat-label">Today's Profit</div>
+      <div class="stat-value green">$${todayProfit.toFixed(2)}</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Total Stock Profit</div>
+      <div class="stat-value blue">$${totalProfit.toFixed(2)}</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Repair Revenue</div>
+      <div class="stat-value orange">$${repairRevenue.toFixed(0)}</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Open Repairs</div>
+      <div class="stat-value red">${pendingRepairs}</div>
+    </div>
+  `;
+
+  const act = document.getElementById('recent-activity');
+  const recentRepairs = [...repairJobs].reverse().slice(0,3);
+  const lowStock = stockItems.filter(i=>i.qty>0&&i.qty<=5);
+  const outStock = stockItems.filter(i=>i.qty===0);
+
+  let html = '';
+  if(outStock.length>0) html += `<div class="low-stock-alert">🚫 Out of stock: ${outStock.map(i=>i.name).join(', ')}</div>`;
+  if(lowStock.length>0) html += `<div class="low-stock-alert">⚠️ Low stock: ${lowStock.map(i=>i.name).join(', ')}</div>`;
+
+  // Today's sales summary
+  const todaySales = activity.filter(a=>a.type==='sale' && a.date===today);
+  if(todaySales.length > 0) {
+    html += `<div class="section-header" style="margin-top:8px"><div class="section-title">Today's Sales</div></div>`;
+    todaySales.forEach(s => {
+      html += `<div class="item-card" style="padding:10px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px">${s.text}</span>
+          <span style="font-size:13px;color:var(--accent)">+$${(s.profit||0).toFixed(2)}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `<div class="section-header" style="margin-top:8px"><div class="section-title">Recent Repairs</div></div>`;
+  recentRepairs.forEach(r => {
+    html += `<div class="item-card">
+      <div class="item-top">
+        <div>
+          <div class="item-name">${r.device}</div>
+          <div class="item-category">${r.customer} · ${r.issue}</div>
+        </div>
+        <div class="status-badge status-${r.status}">${r.status === 'progress' ? 'IN PROGRESS' : r.status.toUpperCase()}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--muted)">${r.date}</span>
+        <span style="font-size:13px;color:var(--accent)">$${Number(r.cost).toFixed(2)}</span>
+      </div>
+    </div>`;
+  });
+  if(recentRepairs.length===0) html += `<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-text">No Repairs Yet</div></div>`;
+  act.innerHTML = html;
+}
+
+// ── STOCK ──
+function renderStock(filter) {
+  const list = document.getElementById('stock-list');
+  let items = stockItems;
+  if(filter) items = items.filter(i=>i.name.toLowerCase().includes(filter.toLowerCase())||i.category.toLowerCase().includes(filter.toLowerCase()));
+  
+  const low = stockItems.filter(i=>i.qty>0&&i.qty<=5).length + stockItems.filter(i=>i.qty===0).length;
+  document.getElementById('low-stock-alert').style.display = low > 0 ? 'flex' : 'none';
+
+  if(items.length===0) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No Items Found</div><div class="empty-sub">Tap + Add Item to get started</div></div>`; return; }
+  list.innerHTML = items.map(item => {
+    const profit = (item.sell - item.buy).toFixed(2);
+    const stockBadge = item.qty === 0 ? 'badge-out' : item.qty <= 5 ? 'badge-low' : 'badge-stock';
+    const stockLabel = item.qty === 0 ? 'OUT' : item.qty <= 5 ? `${item.qty} LOW` : `${item.qty} IN STOCK`;
+    return `<div class="item-card">
+      <div class="item-top">
+        <div>
+          <div class="item-name">${item.name}</div>
+          <div class="item-category">${item.category}</div>
+        </div>
+        <div class="badge ${stockBadge}">${stockLabel}</div>
+      </div>
+      <div class="item-prices">
+        <div class="price-block">
+          <div class="price-lbl">Buy</div>
+          <div class="price-val">$${Number(item.buy).toFixed(2)}</div>
+        </div>
+        <div class="price-block">
+          <div class="price-lbl">Sell</div>
+          <div class="price-val">$${Number(item.sell).toFixed(2)}</div>
+        </div>
+        <div class="price-block">
+          <div class="price-lbl">Profit</div>
+          <div class="price-val profit">+$${profit}</div>
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="btn-sm btn-sell" onclick="openSell('${item.id}')">💰 Sell</button>
+        <button class="btn-sm" onclick="editStock('${item.id}')">✏️ Edit</button>
+        <button class="btn-sm btn-del" onclick="deleteStock('${item.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSell(id) {
+  const item = stockItems.find(i=>i.id===id);
+  document.getElementById('sell-item-id').value = id;
+  document.getElementById('sell-item-name').textContent = `${item.name} · ${item.qty} remaining`;
+  document.getElementById('sell-qty').value = 1;
+  openModal('sell');
+}
+
+function confirmSell() {
+  const id = document.getElementById('sell-item-id').value;
+  const qty = parseInt(document.getElementById('sell-qty').value);
+  const item = stockItems.find(i=>i.id===id);
+  if(!qty || qty < 1) return showToast('Enter valid quantity');
+  if(qty > item.qty) return showToast('Not enough stock!');
+  item.qty -= qty;
+  if(!item.soldQty) item.soldQty = 0;
+  item.soldQty += qty;
+  const profit = ((item.sell - item.buy) * qty).toFixed(2);
+  const today = new Date().toISOString().split('T')[0];
+  activity.unshift({ type:'sale', text:`Sold ${qty}x ${item.name}`, profit: Number(profit), date: today, dateLabel: new Date().toLocaleDateString() });
+  save(); closeModal('sell'); renderStock(document.getElementById('stock-search').value);
+  showToast(`✅ Sold ${qty}x ${item.name} · +$${profit} profit`);
+}
+
+function editStock(id) {
+  const item = stockItems.find(i=>i.id===id);
+  document.getElementById('stock-modal-title').textContent = 'Edit Item';
+  document.getElementById('s-name').value = item.name;
+  document.getElementById('s-category').value = item.category;
+  document.getElementById('s-buy').value = item.buy;
+  document.getElementById('s-sell').value = item.sell;
+  document.getElementById('s-qty').value = item.qty;
+  document.getElementById('s-edit-id').value = id;
+  openModal('stock');
+}
+
+function saveStock() {
+  const name = document.getElementById('s-name').value.trim();
+  const cat = document.getElementById('s-category').value;
+  const buy = parseFloat(document.getElementById('s-buy').value);
+  const sell = parseFloat(document.getElementById('s-sell').value);
+  const qty = parseInt(document.getElementById('s-qty').value);
+  if(!name || isNaN(buy) || isNaN(sell) || isNaN(qty)) return showToast('Fill all fields!');
+  const editId = document.getElementById('s-edit-id').value;
+  if(editId) {
+    const idx = stockItems.findIndex(i=>i.id===editId);
+    stockItems[idx] = {...stockItems[idx], name, category:cat, buy, sell, qty};
+    showToast('✅ Item updated!');
+  } else {
+    stockItems.push({ id: uid(), name, category: cat, buy, sell, qty });
+    showToast('✅ Item added!');
+  }
+  save(); closeModal('stock'); renderStock(document.getElementById('stock-search').value);
+}
+
+function deleteStock(id) {
+  stockItems = stockItems.filter(i => i.id !== id);
+  save();
+  renderStock(document.getElementById('stock-search').value);
+  showToast('🗑 Item deleted');
+}
+
+// ── REPAIRS ──
+function renderRepairs(filter) {
+  const list = document.getElementById('repair-list');
+  let jobs = [...repairJobs].reverse();
+  if(filter) jobs = jobs.filter(r=>r.device.toLowerCase().includes(filter.toLowerCase())||r.customer.toLowerCase().includes(filter.toLowerCase())||r.issue.toLowerCase().includes(filter.toLowerCase()));
+  if(jobs.length===0) { list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-text">No Repair Jobs</div><div class="empty-sub">Tap + New Job to add one</div></div>`; return; }
+  list.innerHTML = jobs.map(r => `
+    <div class="repair-card">
+      <div class="repair-top">
+        <div>
+          <div class="repair-device">${r.device}</div>
+          <div class="repair-id">#${r.id.slice(-5).toUpperCase()} · ${r.date}</div>
+        </div>
+        <div class="status-badge status-${r.status}">${r.status === 'progress' ? 'IN PROGRESS' : r.status.toUpperCase()}</div>
+      </div>
+      <div class="repair-detail">👤 ${r.customer} · 📞 ${r.phone}</div>
+      <div class="repair-detail" style="margin-top:4px">🔩 ${r.issue}</div>
+      <div class="repair-meta">
+        <div class="meta-block"><div class="meta-lbl">Cost</div><div class="meta-val accent">$${Number(r.cost).toFixed(2)}</div></div>
+        <div class="meta-block"><div class="meta-lbl">Status</div><div class="meta-val">${r.status}</div></div>
+        <div class="meta-block"><div class="meta-lbl">Date</div><div class="meta-val">${r.date}</div></div>
+      </div>
+      <div class="repair-actions">
+        ${r.status!=='done'&&r.status!=='cancelled'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','done')">✅ Done</button>`:''}
+        ${r.status==='pending'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','progress')">▶️ Start</button>`:''}
+        <button class="btn-status" onclick="editRepair('${r.id}')">✏️ Edit</button>
+        <button class="btn-status" style="color:var(--danger);border-color:var(--danger)" onclick="deleteRepair('${r.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setRepairStatus(id, status) {
+  const r = repairJobs.find(r=>r.id===id);
+  r.status = status;
+  save(); renderRepairs(document.getElementById('repair-search').value);
+  showToast(`✅ Job marked as ${status}`);
+}
+
+function editRepair(id) {
+  const r = repairJobs.find(r=>r.id===id);
+  document.getElementById('repair-modal-title').textContent = 'Edit Repair Job';
+  document.getElementById('r-customer').value = r.customer;
+  document.getElementById('r-phone').value = r.phone;
+  document.getElementById('r-device').value = r.device;
+  document.getElementById('r-issue').value = r.issue;
+  document.getElementById('r-cost').value = r.cost;
+  document.getElementById('r-status').value = r.status;
+  document.getElementById('r-edit-id').value = id;
+  openModal('repair');
+}
+
+function saveRepair() {
+  const customer = document.getElementById('r-customer').value.trim();
+  const phone = document.getElementById('r-phone').value.trim();
+  const device = document.getElementById('r-device').value.trim();
+  const issue = document.getElementById('r-issue').value.trim();
+  const cost = parseFloat(document.getElementById('r-cost').value);
+  const status = document.getElementById('r-status').value;
+  if(!customer||!device||!issue||isNaN(cost)) return showToast('Fill all fields!');
+  const editId = document.getElementById('r-edit-id').value;
+  const today = new Date().toISOString().split('T')[0];
+  if(editId) {
+    const idx = repairJobs.findIndex(r=>r.id===editId);
+    repairJobs[idx] = {...repairJobs[idx], customer, phone, device, issue, cost, status};
+    showToast('✅ Job updated!');
+  } else {
+    repairJobs.push({ id: uid(), customer, phone, device, issue, cost, status, date: today });
+    showToast('✅ Repair job added!');
+  }
+  save(); closeModal('repair'); renderRepairs(document.getElementById('repair-search').value);
+}
+
+function deleteRepair(id) {
+  repairJobs = repairJobs.filter(r => r.id !== id);
+  save();
+  renderRepairs(document.getElementById('repair-search').value);
+  showToast('🗑 Job deleted');
+}
+
+// ── MODAL ──
+function openModal(id) {
+  if(id==='stock') {
+    document.getElementById('stock-modal-title').textContent = 'Add Accessory';
+    document.getElementById('s-edit-id').value = '';
+    ['s-name','s-buy','s-sell','s-qty'].forEach(f => document.getElementById(f).value = '');
+  }
+  if(id==='repair') {
+    document.getElementById('repair-modal-title').textContent = 'New Repair Job';
+    document.getElementById('r-edit-id').value = '';
+    ['r-customer','r-phone','r-device','r-issue','r-cost'].forEach(f => document.getElementById(f).value = '');
+    document.getElementById('r-status').value = 'pending';
+  }
+  document.getElementById('modal-'+id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-'+id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+});
+
+// ── CONFIRM DIALOG ──
+let _confirmCallback = null;
+function showConfirm(msg, callback) {
+  document.getElementById('confirm-msg').textContent = msg;
+  _confirmCallback = callback;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('confirm-yes-btn').onclick = () => {
+    closeConfirm();
+    if(_confirmCallback) _confirmCallback();
+  };
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  _confirmCallback = null;
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+renderDashboard();
+
+// ── SERVICE WORKER (offline support) ──
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'phoneshop-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(
+        caches.open(CACHE).then(cache => cache.addAll(['/']))
+      );
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      ));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(cached => {
+          if (cached) return cached;
+          return fetch(e.request).then(res => {
+            if (!res || res.status !== 200) return res;
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+            return res;
+          }).catch(() => cached);
+        })
+      );
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+</script>
+</body>
+</html>
