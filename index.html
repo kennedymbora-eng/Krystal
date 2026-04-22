@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,194 +11,331 @@
 <title>PhoneShop Manager</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
-:root {
-  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28; --border:#2a2a3d;
-  --accent:#00e5a0; --accent2:#ff6b35; --accent3:#4d9fff;
-  --text:#f0f0f8; --muted:#6b6b88; --danger:#ff4466; --warning:#ffcc00;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
 
-/* HEADER */
-.app-header{background:linear-gradient(135deg,#0d0d18,#13131a);padding:20px 20px 0;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
-.app-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3d;
+  --accent:#00e5a0;--accent2:#ff6b35;--accent3:#4d9fff;
+  --text:#f0f0f8;--muted:#6b6b88;--danger:#ff4466;--warning:#ffcc00;
+  --purple:#a855f7;--pink:#ec4899;
+}
+.light-mode{
+  --bg:#f4f4f8;--surface:#ffffff;--surface2:#f0f0f4;--border:#e0e0e8;
+  --text:#0a0a0f;--muted:#8888a0;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
+
+/* ── HEADER ── */
+.app-header{background:var(--surface);padding:16px 16px 0;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;transition:background 0.3s;}
+.header-row{display:flex;justify-content:space-between;align-items:center;}
+.app-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
 .app-title span{color:var(--accent);}
-.shop-name-display{font-size:10px;color:var(--muted);margin-top:1px;}
-.tabs{display:flex;margin-top:16px;overflow-x:auto;}
-.tab{flex:1;padding:10px 4px;text-align:center;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
+.shop-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.header-actions{display:flex;gap:8px;align-items:center;}
+.hdr-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer;color:var(--text);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-left:4px;}
+.sync-dot.online{background:var(--accent);}
+.sync-dot.syncing{background:var(--warning);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.tabs{display:flex;margin-top:12px;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;padding:9px 2px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
-/* PAGES */
-.page{display:none;padding:16px;animation:fadeIn 0.25s ease;}
+/* ── PAGES ── */
+.page{display:none;padding:14px;animation:fadeIn 0.2s ease;}
 .page.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .content-area{padding-bottom:88px;}
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.stat-card.green::before{background:var(--accent);}
-.stat-card.orange::before{background:var(--accent2);}
-.stat-card.blue::before{background:var(--accent3);}
-.stat-card.red::before{background:var(--danger);}
-.stat-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;}
-.stat-value{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-top:4px;}
-.stat-value.green{color:var(--accent);}
-.stat-value.orange{color:var(--accent2);}
-.stat-value.blue{color:var(--accent3);}
-.stat-value.red{color:var(--danger);}
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden;cursor:pointer;transition:transform 0.15s,border-color 0.2s;}
+.stat-card:hover{transform:scale(1.02);border-color:var(--accent);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sc-green::before{background:linear-gradient(90deg,var(--accent),#00b37e);}
+.sc-blue::before{background:linear-gradient(90deg,var(--accent3),#0066cc);}
+.sc-orange::before{background:linear-gradient(90deg,var(--accent2),#cc4400);}
+.sc-red::before{background:linear-gradient(90deg,var(--danger),#cc0033);}
+.sc-purple::before{background:linear-gradient(90deg,var(--purple),#7c3aed);}
+.sc-pink::before{background:linear-gradient(90deg,var(--pink),#be185d);}
+.stat-label{font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.stat-value{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-top:4px;}
+.sv-green{color:var(--accent);}
+.sv-blue{color:var(--accent3);}
+.sv-orange{color:var(--accent2);}
+.sv-red{color:var(--danger);}
+.sv-purple{color:var(--purple);}
+.sv-pink{color:var(--pink);}
+.stat-trend{font-size:9px;color:var(--muted);margin-top:2px;}
 
-/* SECTION */
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
-.btn-add{background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px 14px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
+/* ── SECTION HEADER ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:4px;}
+.section-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.btn-add{background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px 14px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
+.btn-add:hover{opacity:0.85;}
 .btn-add.blue{background:var(--accent3);}
+.btn-add.orange{background:var(--accent2);}
+.btn-add.purple{background:var(--purple);}
 
-/* ITEM CARDS */
-.item-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:border-color 0.2s;}
+/* ── CARDS ── */
+.item-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;transition:border-color 0.2s;}
 .item-card:hover{border-color:var(--accent);}
 .item-top{display:flex;justify-content:space-between;align-items:flex-start;}
-.item-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
-.item-category{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
-.badge{font-size:9px;padding:3px 8px;border-radius:20px;}
+.item-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.item-cat{font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.badge{font-size:8px;padding:2px 7px;border-radius:20px;font-weight:600;}
 .badge-stock{background:rgba(0,229,160,0.12);color:var(--accent);}
 .badge-low{background:rgba(255,204,0,0.12);color:var(--warning);}
 .badge-out{background:rgba(255,68,102,0.12);color:var(--danger);}
-.item-prices{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
+.item-prices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .price-block{text-align:center;}
-.price-lbl{font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
-.price-val{font-size:13px;font-weight:500;margin-top:2px;}
+.price-lbl{font-size:7px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.price-val{font-size:12px;font-weight:500;margin-top:2px;}
 .price-val.profit{color:var(--accent);}
-.item-actions{display:flex;gap:8px;margin-top:12px;}
-.btn-sm{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.2s;}
+.price-val.sold{color:var(--accent3);}
+.item-actions{display:flex;gap:6px;margin-top:10px;}
+.btn-sm{flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;transition:all 0.15s;}
 .btn-sell{border-color:var(--accent);color:var(--accent);}
 .btn-del{border-color:var(--danger);color:var(--danger);}
 
-/* REPAIR CARDS */
-.repair-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
-.repair-top{display:flex;justify-content:space-between;align-items:center;}
-.repair-device{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
-.repair-id{font-size:9px;color:var(--muted);}
-.status-badge{font-size:9px;padding:3px 10px;border-radius:20px;}
+/* ── REPAIR CARDS ── */
+.repair-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;}
+.repair-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.repair-device{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.repair-id{font-size:8px;color:var(--muted);margin-top:1px;}
+.status-badge{font-size:8px;padding:3px 8px;border-radius:20px;font-weight:600;}
 .status-pending{background:rgba(255,204,0,0.12);color:var(--warning);}
 .status-progress{background:rgba(77,159,255,0.12);color:var(--accent3);}
 .status-done{background:rgba(0,229,160,0.12);color:var(--accent);}
 .status-cancelled{background:rgba(255,68,102,0.12);color:var(--danger);}
-.repair-detail{font-size:11px;color:var(--muted);margin-top:6px;}
-.repair-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
-.meta-lbl{font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
-.meta-val{font-size:12px;margin-top:2px;}
+.repair-detail{font-size:10px;color:var(--muted);margin-top:5px;}
+.repair-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.meta-lbl{font-size:7px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.meta-val{font-size:11px;margin-top:2px;}
 .meta-val.accent{color:var(--accent);}
-.repair-actions{display:flex;gap:6px;margin-top:10px;}
-.btn-status{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;text-align:center;}
+.repair-actions{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.btn-status{padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;}
 
-/* SETTINGS */
-.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 20px;margin-bottom:20px;text-align:center;}
-.profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:30px;}
-.profile-shop-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
-.profile-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-.settings-group{margin-bottom:20px;}
-.settings-group-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-left:4px;}
-.settings-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.2s;}
+/* ── EXPENSE CARDS ── */
+.expense-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.expense-left{}
+.expense-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.expense-meta{font-size:9px;color:var(--muted);margin-top:2px;}
+.expense-right{text-align:right;}
+.expense-amount{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--danger);}
+.expense-date{font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* ── ANALYTICS ── */
+.analytics-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.analytics-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:80px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:height 0.4s ease;min-height:2px;}
+.bar-label{font-size:7px;color:var(--muted);text-align:center;}
+.bar-val{font-size:7px;color:var(--accent);text-align:center;}
+.top-items{display:flex;flex-direction:column;gap:6px;}
+.top-item{display:flex;align-items:center;gap:10px;}
+.top-rank{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--accent);width:20px;}
+.top-info{flex:1;}
+.top-name{font-size:11px;font-weight:500;}
+.top-sub{font-size:9px;color:var(--muted);}
+.top-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width 0.5s ease;}
+
+/* ── SETTINGS ── */
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;}
+.profile-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.profile-shopname{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;}
+.profile-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.profile-badges{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.profile-badge{font-size:9px;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.settings-group{margin-bottom:18px;}
+.settings-group-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-left:4px;}
+.settings-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.2s;}
 .settings-row:hover{border-color:var(--accent);}
 .settings-row-left{display:flex;align-items:center;gap:12px;}
-.settings-icon{font-size:20px;}
-.settings-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;}
-.settings-sub{font-size:10px;color:var(--muted);margin-top:2px;}
-.settings-arrow{color:var(--muted);font-size:16px;}
-.danger-row{border-color:rgba(255,68,102,0.2);}
+.settings-icon{font-size:18px;width:28px;text-align:center;}
+.settings-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;}
+.settings-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+.settings-arrow{color:var(--muted);font-size:14px;}
+.settings-value{font-size:10px;color:var(--accent);margin-right:6px;}
+.danger-row{border-color:rgba(255,68,102,0.25);}
 .danger-row .settings-label{color:var(--danger);}
 .danger-row:hover{border-color:var(--danger);}
+.cloud-row{border-color:rgba(77,159,255,0.25);}
+.cloud-row:hover{border-color:var(--accent3);}
+.toggle-switch{width:40px;height:22px;background:var(--border);border-radius:11px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.toggle-switch.on{background:var(--accent);}
+.toggle-knob{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;}
+.toggle-switch.on .toggle-knob{left:20px;}
 
-/* MODALS */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:200;align-items:flex-end;justify-content:center;}
+/* ── MODALS ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:430px;animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);max-height:92vh;overflow-y:auto;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:22px 22px 0 0;padding:20px 18px 36px;width:100%;max-width:430px;animation:slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);max-height:92vh;overflow-y:auto;}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
-.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:18px;}
-.form-group{margin-bottom:14px;}
-.form-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:block;}
-.form-input,.form-select{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:border-color 0.2s;}
-.form-input:focus,.form-select:focus{border-color:var(--accent);}
-.form-select option{background:var(--surface2);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.modal-actions{display:flex;gap:10px;margin-top:20px;}
-.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.btn-save{flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px;}
+.form-group{margin-bottom:12px;}
+.form-label{font-size:8px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;display:block;}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
+.form-select option{background:var(--surface);}
+.form-textarea{resize:none;min-height:72px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.modal-actions{display:flex;gap:8px;margin-top:16px;}
+.btn-cancel{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
+.btn-save{flex:2;padding:11px;border-radius:10px;border:none;background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
 .btn-save.orange{background:var(--accent2);}
 .btn-save.blue{background:var(--accent3);}
+.btn-save.purple{background:var(--purple);}
+.btn-save.danger{background:var(--danger);color:#fff;}
+.btn-wide{width:100%;padding:12px;border-radius:10px;border:none;background:var(--surface2);color:var(--text);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);margin-bottom:8px;text-align:left;display:flex;align-items:center;gap:10px;}
+.btn-wide:hover{border-color:var(--accent);}
 
-/* CONFIRM */
-.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);z-index:400;align-items:center;justify-content:center;padding:20px;}
+/* ── CONFIRM ── */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px;}
 .confirm-overlay.open{display:flex;}
-.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px 24px;width:100%;max-width:320px;text-align:center;animation:popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);}
-@keyframes popIn{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
-.confirm-icon{font-size:36px;margin-bottom:12px;}
-.confirm-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;}
-.confirm-msg{font-size:11px;color:var(--muted);margin-bottom:22px;}
+.confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 22px;width:100%;max-width:320px;text-align:center;animation:popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes popIn{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+.confirm-icon{font-size:40px;margin-bottom:10px;}
+.confirm-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;}
+.confirm-msg{font-size:11px;color:var(--muted);margin-bottom:22px;line-height:1.5;}
 .confirm-btns{display:flex;gap:10px;}
-.btn-confirm-no{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
-.btn-confirm-yes{flex:1;padding:12px;border-radius:10px;border:none;background:var(--danger);color:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-confirm-no{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
+.btn-confirm-yes{flex:1;padding:12px;border-radius:10px;border:none;background:var(--danger);color:#fff;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
 
-/* MISC */
-.search-bar{width:100%;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;margin-bottom:14px;transition:border-color 0.2s;}
+/* ── PIN LOCK ── */
+.pin-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;}
+.pin-screen.show{display:flex;}
+.pin-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:6px;}
+.pin-logo span{color:var(--accent);}
+.pin-subtitle{font-size:11px;color:var(--muted);margin-bottom:36px;}
+.pin-dots{display:flex;gap:16px;margin-bottom:36px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:background 0.15s,border-color 0.15s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;}
+.pin-btn{width:72px;height:72px;border-radius:50%;background:var(--surface);border:1px solid var(--border);font-family:'Syne',sans-serif;font-size:22px;font-weight:700;cursor:pointer;color:var(--text);transition:background 0.15s,transform 0.1s;}
+.pin-btn:active{transform:scale(0.92);background:var(--surface2);}
+.pin-error{color:var(--danger);font-size:11px;margin-top:16px;min-height:18px;}
+
+/* ── RECEIPT ── */
+.receipt{background:var(--surface2);border-radius:10px;padding:14px;font-size:10px;line-height:1.8;white-space:pre-wrap;font-family:'DM Mono',monospace;border:1px solid var(--border);}
+
+/* ── MISC ── */
+.search-bar{width:100%;padding:10px 13px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;margin-bottom:12px;transition:border-color 0.2s;}
 .search-bar:focus{border-color:var(--accent);}
 .search-bar::placeholder{color:var(--muted);}
-.low-stock-alert{background:rgba(255,204,0,0.08);border:1px solid rgba(255,204,0,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--warning);display:flex;align-items:center;gap:8px;}
-.empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
-.empty-icon{font-size:40px;margin-bottom:12px;}
-.empty-text{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
-.empty-sub{font-size:11px;margin-top:4px;}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 20px;border-radius:20px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;z-index:300;opacity:0;transition:opacity 0.3s;white-space:nowrap;max-width:90%;}
+.low-alert{background:rgba(255,204,0,0.07);border:1px solid rgba(255,204,0,0.25);border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:10px;color:var(--warning);display:flex;align-items:center;gap:8px;}
+.empty-state{text-align:center;padding:44px 20px;color:var(--muted);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+.empty-text{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;}
+.empty-sub{font-size:10px;margin-top:3px;}
+.filter-chips{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;}
+.filter-chips::-webkit-scrollbar{display:none;}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#000;}
+.toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:9px 18px;border-radius:20px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;z-index:600;opacity:0;transition:opacity 0.25s;white-space:nowrap;max-width:92%;text-align:center;}
 .toast.show{opacity:1;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:8px 0 16px;}
-.nav-item{flex:1;text-align:center;padding:6px 0;cursor:pointer;}
-.nav-icon{font-size:20px;}
-.nav-label{font-size:9px;color:var(--muted);margin-top:2px;}
+.toast.error{background:var(--danger);color:#fff;}
+.toast.info{background:var(--accent3);color:#fff;}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:6px 0 14px;}
+.nav-item{flex:1;text-align:center;padding:5px 0;cursor:pointer;}
+.nav-icon{font-size:18px;}
+.nav-label{font-size:8px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
 .nav-item.active .nav-label{color:var(--accent);}
+.tag{display:inline-block;font-size:8px;padding:1px 6px;border-radius:4px;background:rgba(0,229,160,0.12);color:var(--accent);margin-left:6px;vertical-align:middle;}
+.cloud-status{font-size:9px;color:var(--muted);text-align:center;padding:6px;border-radius:8px;background:var(--surface2);margin-bottom:8px;}
 </style>
 </head>
 <body>
 
+<!-- ── PIN LOCK ── -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-logo">📱 Phone<span>Shop</span></div>
+  <div class="pin-subtitle" id="pin-subtitle">Enter PIN to unlock</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" onclick="pinPress('clear')" style="font-size:13px;color:var(--muted)">CLR</button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn" onclick="pinPress('del')" style="font-size:18px">⌫</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<!-- ── HEADER ── -->
 <div class="app-header">
-  <div class="app-title">📱 Phone<span>Shop</span></div>
-  <div class="shop-name-display" id="shop-name-display"></div>
+  <div class="header-row">
+    <div>
+      <div class="app-title">📱 Phone<span>Shop</span></div>
+      <div class="shop-sub" id="shop-sub"></div>
+    </div>
+    <div class="header-actions">
+      <button class="hdr-btn" onclick="syncCloud()" title="Sync to cloud">☁️<span class="sync-dot" id="sync-dot"></span></button>
+      <button class="hdr-btn" onclick="toggleTheme()" id="theme-btn">🌙</button>
+    </div>
+  </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('dashboard')">📊 Home</button>
     <button class="tab" onclick="switchTab('stock')">📦 Stock</button>
     <button class="tab" onclick="switchTab('repairs')">🔧 Repairs</button>
+    <button class="tab" onclick="switchTab('expenses')">💸 Expenses</button>
+    <button class="tab" onclick="switchTab('analytics')">📈 Analytics</button>
     <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
   </div>
 </div>
 
 <div class="content-area">
 
-  <!-- DASHBOARD -->
+  <!-- ── DASHBOARD ── -->
   <div id="page-dashboard" class="page active">
-    <div style="height:16px"></div>
+    <div style="height:12px"></div>
+    <div id="cloud-status-bar"></div>
     <div class="stats-grid" id="stats-grid"></div>
-    <div class="section-header"><div class="section-title">Recent Activity</div></div>
-    <div id="recent-activity"></div>
+    <div id="dash-alerts"></div>
+    <div class="section-header"><div class="section-title">Today's Sales</div><div id="today-total" style="font-size:11px;color:var(--accent)"></div></div>
+    <div id="today-sales-list"></div>
+    <div class="section-header" style="margin-top:8px"><div class="section-title">Recent Repairs</div></div>
+    <div id="dash-repairs"></div>
   </div>
 
-  <!-- STOCK -->
+  <!-- ── STOCK ── -->
   <div id="page-stock" class="page">
-    <div style="height:16px"></div>
-    <input class="search-bar" placeholder="🔍  Search accessories..." oninput="renderStock(this.value)" id="stock-search">
+    <div style="height:12px"></div>
+    <input class="search-bar" placeholder="🔍 Search accessories..." oninput="renderStock(this.value,stockFilter)" id="stock-search">
+    <div class="filter-chips" id="stock-filters"></div>
     <div class="section-header">
       <div class="section-title">Accessories</div>
       <button class="btn-add" onclick="openStockModal()">+ Add Item</button>
     </div>
-    <div id="low-stock-alert" class="low-stock-alert" style="display:none">⚠️ Some items have low stock!</div>
+    <div id="low-stock-alert" class="low-alert" style="display:none">⚠️ Some items are low or out of stock!</div>
     <div id="stock-list"></div>
   </div>
 
-  <!-- REPAIRS -->
+  <!-- ── REPAIRS ── -->
   <div id="page-repairs" class="page">
-    <div style="height:16px"></div>
-    <input class="search-bar" placeholder="🔍  Search repairs..." oninput="renderRepairs(this.value)" id="repair-search">
+    <div style="height:12px"></div>
+    <input class="search-bar" placeholder="🔍 Search repairs..." oninput="renderRepairs(this.value,repairFilter)" id="repair-search">
+    <div class="filter-chips" id="repair-filters"></div>
     <div class="section-header">
       <div class="section-title">Repair Jobs</div>
       <button class="btn-add blue" onclick="openRepairModal()">+ New Job</button>
@@ -206,47 +343,93 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
     <div id="repair-list"></div>
   </div>
 
-  <!-- SETTINGS -->
+  <!-- ── EXPENSES ── -->
+  <div id="page-expenses" class="page">
+    <div style="height:12px"></div>
+    <div class="stats-grid">
+      <div class="stat-card sc-red"><div class="stat-label">This Month</div><div class="stat-value sv-red" id="exp-month">0</div></div>
+      <div class="stat-card sc-orange"><div class="stat-label">Total Expenses</div><div class="stat-value sv-orange" id="exp-total">0</div></div>
+    </div>
+    <div class="section-header">
+      <div class="section-title">Expenses</div>
+      <button class="btn-add orange" onclick="openModal('expense')">+ Add</button>
+    </div>
+    <div id="expense-list"></div>
+  </div>
+
+  <!-- ── ANALYTICS ── -->
+  <div id="page-analytics" class="page">
+    <div style="height:12px"></div>
+    <div id="analytics-content"></div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
   <div id="page-settings" class="page">
-    <div style="height:16px"></div>
+    <div style="height:12px"></div>
     <div class="profile-card">
       <div class="profile-avatar" id="profile-avatar">🏪</div>
-      <div class="profile-shop-name" id="profile-shop-name">My Phone Shop</div>
-      <div class="profile-sub" id="profile-owner-display">Tap Edit Profile to set up</div>
+      <div class="profile-shopname" id="profile-shopname">My Phone Shop</div>
+      <div class="profile-sub" id="profile-sub">Tap Edit Profile to set up</div>
+      <div class="profile-badges" id="profile-badges"></div>
     </div>
 
     <div class="settings-group">
       <div class="settings-group-title">Shop Profile</div>
       <div class="settings-row" onclick="openModal('profile')">
-        <div class="settings-row-left">
-          <div class="settings-icon">✏️</div>
-          <div><div class="settings-label">Edit Profile</div><div class="settings-sub">Shop name, owner, phone</div></div>
-        </div>
+        <div class="settings-row-left"><div class="settings-icon">✏️</div><div><div class="settings-label">Edit Profile</div><div class="settings-sub">Name, owner, phone, address</div></div></div>
         <div class="settings-arrow">›</div>
       </div>
       <div class="settings-row" onclick="openModal('currency')">
-        <div class="settings-row-left">
-          <div class="settings-icon">💱</div>
-          <div><div class="settings-label">Currency</div><div class="settings-sub" id="currency-display">USD ($)</div></div>
-        </div>
+        <div class="settings-row-left"><div class="settings-icon">💱</div><div><div class="settings-label">Currency</div><div class="settings-sub" id="currency-display">USD ($)</div></div></div>
         <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">☁️ Cloud Backup</div>
+      <div class="cloud-status" id="cloud-status-text">Not connected · Tap Setup to connect</div>
+      <div class="settings-row cloud-row" onclick="openModal('cloud')">
+        <div class="settings-row-left"><div class="settings-icon">☁️</div><div><div class="settings-label">Cloud Setup</div><div class="settings-sub">Free backup via JSONBin.io</div></div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="syncCloud()">
+        <div class="settings-row-left"><div class="settings-icon">🔄</div><div><div class="settings-label">Sync Now</div><div class="settings-sub" id="last-sync-text">Never synced</div></div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="restoreCloud()">
+        <div class="settings-row-left"><div class="settings-icon">⬇️</div><div><div class="settings-label">Restore from Cloud</div><div class="settings-sub">Overwrite local with cloud data</div></div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Security</div>
+      <div class="settings-row" onclick="openModal('pin')">
+        <div class="settings-row-left"><div class="settings-icon">🔐</div><div><div class="settings-label">PIN Lock</div><div class="settings-sub" id="pin-status-text">Disabled</div></div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Appearance</div>
+      <div class="settings-row" onclick="toggleTheme()">
+        <div class="settings-row-left"><div class="settings-icon" id="theme-icon">🌙</div><div><div class="settings-label">Theme</div><div class="settings-sub" id="theme-text">Dark Mode</div></div></div>
+        <div class="toggle-switch" id="theme-toggle"><div class="toggle-knob"></div></div>
       </div>
     </div>
 
     <div class="settings-group">
       <div class="settings-group-title">Data & Backup</div>
       <div class="settings-row" onclick="exportData()">
-        <div class="settings-row-left">
-          <div class="settings-icon">📤</div>
-          <div><div class="settings-label">Export Backup</div><div class="settings-sub">Download all data as a file</div></div>
-        </div>
+        <div class="settings-row-left"><div class="settings-icon">📤</div><div><div class="settings-label">Export Backup</div><div class="settings-sub">Download .json file</div></div></div>
         <div class="settings-arrow">›</div>
       </div>
       <div class="settings-row" onclick="document.getElementById('import-file').click()">
-        <div class="settings-row-left">
-          <div class="settings-icon">📥</div>
-          <div><div class="settings-label">Import Backup</div><div class="settings-sub">Restore from backup file</div></div>
-        </div>
+        <div class="settings-row-left"><div class="settings-icon">📥</div><div><div class="settings-label">Import Backup</div><div class="settings-sub">Restore from .json file</div></div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="generateReport()">
+        <div class="settings-row-left"><div class="settings-icon">📊</div><div><div class="settings-label">Generate Report</div><div class="settings-sub">Full summary you can share</div></div></div>
         <div class="settings-arrow">›</div>
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
@@ -255,20 +438,14 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
     <div class="settings-group">
       <div class="settings-group-title">App Info</div>
       <div class="settings-row">
-        <div class="settings-row-left">
-          <div class="settings-icon">📱</div>
-          <div><div class="settings-label">PhoneShop Manager</div><div class="settings-sub">Version 1.0 · Works Offline</div></div>
-        </div>
+        <div class="settings-row-left"><div class="settings-icon">📱</div><div><div class="settings-label">PhoneShop Manager <span class="tag">GOD MODE</span></div><div class="settings-sub">v2.0 · Offline Ready · Cloud Enabled</div></div></div>
       </div>
     </div>
 
     <div class="settings-group">
       <div class="settings-group-title">Danger Zone</div>
-      <div class="settings-row danger-row" onclick="clearAllData()">
-        <div class="settings-row-left">
-          <div class="settings-icon">🗑️</div>
-          <div><div class="settings-label">Clear All Data</div><div class="settings-sub">Permanently delete everything</div></div>
-        </div>
+      <div class="settings-row danger-row" onclick="promptClearData()">
+        <div class="settings-row-left"><div class="settings-icon">🗑️</div><div><div class="settings-label">Clear All Data</div><div class="settings-sub">Permanently delete everything</div></div></div>
         <div class="settings-arrow">›</div>
       </div>
     </div>
@@ -276,57 +453,42 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
 
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- ── BOTTOM NAV ── -->
 <div class="bottom-nav">
-  <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
-    <div class="nav-icon">📊</div><div class="nav-label">Home</div>
-  </div>
-  <div class="nav-item" id="nav-stock" onclick="switchTab('stock')">
-    <div class="nav-icon">📦</div><div class="nav-label">Stock</div>
-  </div>
-  <div class="nav-item" id="nav-repairs" onclick="switchTab('repairs')">
-    <div class="nav-icon">🔧</div><div class="nav-label">Repairs</div>
-  </div>
-  <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
-    <div class="nav-icon">⚙️</div><div class="nav-label">Settings</div>
-  </div>
+  <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')"><div class="nav-icon">📊</div><div class="nav-label">Home</div></div>
+  <div class="nav-item" id="nav-stock" onclick="switchTab('stock')"><div class="nav-icon">📦</div><div class="nav-label">Stock</div></div>
+  <div class="nav-item" id="nav-repairs" onclick="switchTab('repairs')"><div class="nav-icon">🔧</div><div class="nav-label">Repairs</div></div>
+  <div class="nav-item" id="nav-expenses" onclick="switchTab('expenses')"><div class="nav-icon">💸</div><div class="nav-label">Expenses</div></div>
+  <div class="nav-item" id="nav-analytics" onclick="switchTab('analytics')"><div class="nav-icon">📈</div><div class="nav-label">Stats</div></div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('settings')"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
 </div>
 
-<!-- STOCK MODAL -->
+<!-- ── STOCK MODAL ── -->
 <div class="modal-overlay" id="modal-stock">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="stock-modal-title">Add Accessory</div>
-    <div class="form-group">
-      <label class="form-label">Item Name</label>
-      <input class="form-input" id="s-name" placeholder="e.g. iPhone 15 Case">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Category</label>
-      <select class="form-select" id="s-category">
-        <option>Cases &amp; Covers</option>
-        <option>Screen Protectors</option>
-        <option>Chargers &amp; Cables</option>
-        <option>Earphones / AirPods</option>
-        <option>Power Banks</option>
-        <option>Mounts &amp; Stands</option>
-        <option>Other</option>
-      </select>
+    <div class="form-group"><label class="form-label">Item Name</label><input class="form-input" id="s-name" placeholder="e.g. iPhone 15 Case"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-select" id="s-category">
+          <option>Cases &amp; Covers</option><option>Screen Protectors</option>
+          <option>Chargers &amp; Cables</option><option>Earphones / AirPods</option>
+          <option>Power Banks</option><option>Mounts &amp; Stands</option>
+          <option>Batteries</option><option>Memory Cards</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Supplier</label><input class="form-input" id="s-supplier" placeholder="Optional"></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Buy Price</label>
-        <input class="form-input" id="s-buy" type="number" placeholder="0.00" step="0.01" min="0">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Sell Price</label>
-        <input class="form-input" id="s-sell" type="number" placeholder="0.00" step="0.01" min="0">
-      </div>
+      <div class="form-group"><label class="form-label">Buy Price</label><input class="form-input" id="s-buy" type="number" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Sell Price</label><input class="form-input" id="s-sell" type="number" placeholder="0.00" step="0.01" min="0"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label" id="s-qty-label">Stock Quantity</label>
-      <input class="form-input" id="s-qty" type="number" placeholder="0" min="0">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" id="s-qty-label">Quantity</label><input class="form-input" id="s-qty" type="number" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Low Stock Alert</label><input class="form-input" id="s-lowqty" type="number" placeholder="5" min="1"></div>
     </div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="s-notes" placeholder="Optional notes"></div>
     <input type="hidden" id="s-edit-id">
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('stock')">Cancel</button>
@@ -335,62 +497,47 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<!-- REPAIR MODAL -->
+<!-- ── REPAIR MODAL ── -->
 <div class="modal-overlay" id="modal-repair">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="repair-modal-title">New Repair Job</div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Customer Name</label>
-        <input class="form-input" id="r-customer" placeholder="Name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone No.</label>
-        <input class="form-input" id="r-phone" placeholder="Number">
-      </div>
+      <div class="form-group"><label class="form-label">Customer Name</label><input class="form-input" id="r-customer" placeholder="Name"></div>
+      <div class="form-group"><label class="form-label">Phone No.</label><input class="form-input" id="r-phone" placeholder="Number"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Device</label>
-      <input class="form-input" id="r-device" placeholder="e.g. Samsung Galaxy S23">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Issue / Repair Type</label>
-      <input class="form-input" id="r-issue" placeholder="e.g. Screen replacement">
+    <div class="form-group"><label class="form-label">Device</label><input class="form-input" id="r-device" placeholder="e.g. Samsung Galaxy S23"></div>
+    <div class="form-group"><label class="form-label">Issue / Repair Type</label><input class="form-input" id="r-issue" placeholder="e.g. Screen replacement"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Parts Cost</label><input class="form-input" id="r-parts" type="number" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Labour Cost</label><input class="form-input" id="r-labour" type="number" placeholder="0.00" step="0.01" min="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Cost</label>
-        <input class="form-input" id="r-cost" type="number" placeholder="0.00" step="0.01" min="0">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Status</label>
+      <div class="form-group"><label class="form-label">Total Charged</label><input class="form-input" id="r-cost" type="number" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Status</label>
         <select class="form-select" id="r-status">
-          <option value="pending">Pending</option>
-          <option value="progress">In Progress</option>
-          <option value="done">Done</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="pending">Pending</option><option value="progress">In Progress</option>
+          <option value="done">Done</option><option value="cancelled">Cancelled</option>
         </select>
       </div>
     </div>
+    <div class="form-group"><label class="form-label">Notes / IMEI / Serial</label><input class="form-input" id="r-notes" placeholder="Optional"></div>
     <input type="hidden" id="r-edit-id">
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('repair')">Cancel</button>
-      <button class="btn-save blue" id="r-save-btn" onclick="saveRepair()">Save Job</button>
+      <button class="btn-save blue" id="r-save-btn" onclick="saveRepair()">Add Job</button>
     </div>
   </div>
 </div>
 
-<!-- SELL MODAL -->
+<!-- ── SELL MODAL ── -->
 <div class="modal-overlay" id="modal-sell">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Sell Units</div>
-    <div id="sell-item-name" style="color:var(--muted);font-size:12px;margin-bottom:16px;"></div>
-    <div class="form-group">
-      <label class="form-label">Quantity to Sell</label>
-      <input class="form-input" id="sell-qty" type="number" placeholder="1" min="1">
-    </div>
+    <div id="sell-item-info" style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:11px;"></div>
+    <div class="form-group"><label class="form-label">Quantity to Sell</label><input class="form-input" id="sell-qty" type="number" placeholder="1" min="1"></div>
+    <div id="sell-profit-preview" style="font-size:10px;color:var(--accent);margin-top:-6px;margin-bottom:10px;"></div>
     <input type="hidden" id="sell-item-id">
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('sell')">Cancel</button>
@@ -399,26 +546,70 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<!-- PROFILE MODAL -->
+<!-- ── EXPENSE MODAL ── -->
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="expense-modal-title">Add Expense</div>
+    <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="e-name" placeholder="e.g. Shop Rent, Stock Purchase"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Amount</label><input class="form-input" id="e-amount" type="number" placeholder="0.00" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-select" id="e-category">
+          <option>Rent</option><option>Stock Purchase</option><option>Utilities</option>
+          <option>Salary</option><option>Transport</option><option>Marketing</option><option>Equipment</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="e-notes" placeholder="Optional"></div>
+    <input type="hidden" id="e-edit-id">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('expense')">Cancel</button>
+      <button class="btn-save orange" id="e-save-btn" onclick="saveExpense()">Add Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECEIPT MODAL ── -->
+<div class="modal-overlay" id="modal-receipt">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Receipt</div>
+    <div class="receipt" id="receipt-content"></div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn-cancel" onclick="closeModal('receipt')">Close</button>
+      <button class="btn-save blue" onclick="shareReceipt()">📤 Share</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── REPORT MODAL ── -->
+<div class="modal-overlay" id="modal-report">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Business Report</div>
+    <div class="receipt" id="report-content"></div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn-cancel" onclick="closeModal('report')">Close</button>
+      <button class="btn-save blue" onclick="shareReport()">📤 Share</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROFILE MODAL ── -->
 <div class="modal-overlay" id="modal-profile">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Edit Profile</div>
-    <div class="form-group">
-      <label class="form-label">Shop Name</label>
-      <input class="form-input" id="p-shopname" placeholder="e.g. QuickFix Phone Shop">
+    <div class="form-group"><label class="form-label">Shop Name</label><input class="form-input" id="p-shopname" placeholder="e.g. QuickFix Phone Shop"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Owner Name</label><input class="form-input" id="p-owner" placeholder="Your name"></div>
+      <div class="form-group"><label class="form-label">Contact Phone</label><input class="form-input" id="p-phone" placeholder="Number"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Owner Name</label>
-      <input class="form-input" id="p-owner" placeholder="Your name">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Contact Phone</label>
-      <input class="form-input" id="p-phone" placeholder="Shop phone number">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Shop Emoji</label>
-      <input class="form-input" id="p-emoji" placeholder="🏪" maxlength="2">
+    <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="p-address" placeholder="Shop address"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Shop Emoji</label><input class="form-input" id="p-emoji" placeholder="🏪" maxlength="2"></div>
+      <div class="form-group"><label class="form-label">Opening Hours</label><input class="form-input" id="p-hours" placeholder="8am - 8pm"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('profile')">Cancel</button>
@@ -427,21 +618,57 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<!-- CURRENCY MODAL -->
+<!-- ── CURRENCY MODAL ── -->
 <div class="modal-overlay" id="modal-currency">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Select Currency</div>
-    <div id="currency-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;max-height:55vh;overflow-y:auto;"></div>
-    <button class="btn-cancel" onclick="closeModal('currency')" style="width:100%;padding:12px;">Close</button>
+    <div id="currency-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;max-height:60vh;overflow-y:auto;"></div>
+    <button class="btn-cancel" onclick="closeModal('currency')" style="width:100%;padding:11px;">Close</button>
   </div>
 </div>
 
-<!-- CONFIRM DIALOG -->
+<!-- ── CLOUD MODAL ── -->
+<div class="modal-overlay" id="modal-cloud">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">☁️ Cloud Backup Setup</div>
+    <div style="font-size:10px;color:var(--muted);line-height:1.7;margin-bottom:14px;background:var(--surface2);padding:12px;border-radius:10px;">
+      <strong style="color:var(--text)">Free Cloud Backup using JSONBin.io</strong><br>
+      1. Go to <strong>jsonbin.io</strong> on your phone<br>
+      2. Sign up free → go to API Keys<br>
+      3. Copy your <strong>Master Key</strong> and paste below<br>
+      4. Tap "Create Bin" — your data syncs automatically!
+    </div>
+    <div class="form-group"><label class="form-label">JSONBin Master Key (starts with $2b$)</label><input class="form-input" id="cloud-key" placeholder="$2b$10$..." type="password"></div>
+    <div class="form-group"><label class="form-label">Bin ID (leave empty to create new)</label><input class="form-input" id="cloud-bin" placeholder="auto-generated on first sync"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('cloud')">Cancel</button>
+      <button class="btn-save blue" onclick="saveCloudConfig()">Save &amp; Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PIN SETUP MODAL ── -->
+<div class="modal-overlay" id="modal-pin">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="pin-modal-title">Set PIN Lock</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:14px;">Set a 4-digit PIN to lock the app on startup. Leave blank to disable.</div>
+    <div class="form-group"><label class="form-label">New PIN (4 digits)</label><input class="form-input" id="pin-new" type="password" maxlength="4" placeholder="Leave blank to disable" inputmode="numeric"></div>
+    <div class="form-group"><label class="form-label">Confirm PIN</label><input class="form-input" id="pin-confirm" type="password" maxlength="4" placeholder="Repeat PIN" inputmode="numeric"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('pin')">Cancel</button>
+      <button class="btn-save" onclick="savePinSetting()">Save PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DIALOG ── -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
     <div class="confirm-icon" id="confirm-icon">🗑️</div>
-    <div class="confirm-title">Are you sure?</div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
     <div class="confirm-msg" id="confirm-msg">This cannot be undone.</div>
     <div class="confirm-btns">
       <button class="btn-confirm-no" onclick="closeConfirm()">Cancel</button>
@@ -453,163 +680,273 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
 <div class="toast" id="toast"></div>
 
 <script>
-const CURRENCIES = [
+// ══════════════════════════════════════════
+//  CURRENCIES
+// ══════════════════════════════════════════
+const CURRENCIES=[
   {code:'USD',symbol:'$',name:'US Dollar'},
   {code:'GHS',symbol:'₵',name:'Ghana Cedi'},
   {code:'NGN',symbol:'₦',name:'Nigerian Naira'},
   {code:'KES',symbol:'Ksh',name:'Kenyan Shilling'},
-  {code:'ZAR',symbol:'R',name:'South African Rand'},
+  {code:'ZAR',symbol:'R',name:'S.A. Rand'},
   {code:'GBP',symbol:'£',name:'British Pound'},
   {code:'EUR',symbol:'€',name:'Euro'},
-  {code:'XOF',symbol:'CFA',name:'West African CFA'},
+  {code:'XOF',symbol:'CFA',name:'W.A. CFA Franc'},
   {code:'TZS',symbol:'TSh',name:'Tanzanian Shilling'},
   {code:'UGX',symbol:'USh',name:'Ugandan Shilling'},
+  {code:'EGP',symbol:'E£',name:'Egyptian Pound'},
+  {code:'MAD',symbol:'DH',name:'Moroccan Dirham'},
 ];
 
-function loadData(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback;}catch(e){return fallback;}}
+// ══════════════════════════════════════════
+//  DATA LAYER
+// ══════════════════════════════════════════
+function ld(key,fb){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fb;}catch(e){return fb;}}
+function sv(){
+  try{
+    localStorage.setItem('ps2-stock',JSON.stringify(stockItems));
+    localStorage.setItem('ps2-repairs',JSON.stringify(repairJobs));
+    localStorage.setItem('ps2-activity',JSON.stringify(activity));
+    localStorage.setItem('ps2-expenses',JSON.stringify(expenses));
+    localStorage.setItem('ps2-profile',JSON.stringify(profile));
+    localStorage.setItem('ps2-currency',JSON.stringify(currency));
+    localStorage.setItem('ps2-settings',JSON.stringify(appSettings));
+  }catch(e){}
+}
 
-let stockItems = loadData('ps-stock',[]);
-let repairJobs = loadData('ps-repairs',[]);
-let activity   = loadData('ps-activity',[]);
-let profile    = loadData('ps-profile',{shopName:'My Phone Shop',owner:'',phone:'',emoji:'🏪'});
-let currency   = loadData('ps-currency',{code:'USD',symbol:'$',name:'US Dollar'});
+let stockItems  = ld('ps2-stock',[]);
+let repairJobs  = ld('ps2-repairs',[]);
+let activity    = ld('ps2-activity',[]);
+let expenses    = ld('ps2-expenses',[]);
+let profile     = ld('ps2-profile',{shopName:'My Phone Shop',owner:'',phone:'',address:'',emoji:'🏪',hours:''});
+let currency    = ld('ps2-currency',{code:'USD',symbol:'$',name:'US Dollar'});
+let appSettings = ld('ps2-settings',{theme:'dark',pinEnabled:false,pinHash:'',cloudKey:'',cloudBin:'',lastSync:null,autoSync:false});
 
+// Sample data on first run
 if(stockItems.length===0){
   stockItems=[
-    {id:uid(),name:'iPhone 15 Pro Max Case',category:'Cases & Covers',buy:3.50,sell:12.99,qty:24,soldQty:0},
-    {id:uid(),name:'USB-C Fast Charger 65W',category:'Chargers & Cables',buy:8.00,sell:24.99,qty:5,soldQty:0},
-    {id:uid(),name:'Tempered Glass Pack',category:'Screen Protectors',buy:1.20,sell:6.99,qty:0,soldQty:0},
-    {id:uid(),name:'20000mAh Power Bank',category:'Power Banks',buy:18.00,sell:49.99,qty:12,soldQty:0},
+    {id:uid(),name:'iPhone 15 Pro Max Case',category:'Cases & Covers',buy:3.50,sell:12.99,qty:24,soldQty:0,lowQty:5,supplier:'',notes:''},
+    {id:uid(),name:'USB-C Fast Charger 65W',category:'Chargers & Cables',buy:8.00,sell:24.99,qty:5,soldQty:0,lowQty:3,supplier:'',notes:''},
+    {id:uid(),name:'Tempered Glass Pack',category:'Screen Protectors',buy:1.20,sell:6.99,qty:0,soldQty:12,lowQty:5,supplier:'',notes:''},
+    {id:uid(),name:'20000mAh Power Bank',category:'Power Banks',buy:18.00,sell:49.99,qty:12,soldQty:3,lowQty:4,supplier:'',notes:''},
   ];
 }
 if(repairJobs.length===0){
   repairJobs=[
-    {id:uid(),customer:'James Osei',phone:'0244123456',device:'iPhone 13',issue:'Screen Replacement',cost:85,status:'done',date:'2026-04-12'},
-    {id:uid(),customer:'Ama Boateng',phone:'0551234567',device:'Samsung S22',issue:'Battery Swap',cost:55,status:'progress',date:'2026-04-14'},
-    {id:uid(),customer:'Kofi Mensah',phone:'0201234567',device:'Tecno Spark 20',issue:'Charging Port',cost:35,status:'pending',date:'2026-04-14'},
+    {id:uid(),customer:'James Osei',phone:'0244123456',device:'iPhone 13',issue:'Screen Replacement',parts:30,labour:55,cost:85,status:'done',date:'2026-04-12',notes:''},
+    {id:uid(),customer:'Ama Boateng',phone:'0551234567',device:'Samsung S22',issue:'Battery Swap',parts:25,labour:30,cost:55,status:'progress',date:'2026-04-20',notes:''},
+    {id:uid(),customer:'Kofi Mensah',phone:'0201234567',device:'Tecno Spark 20',issue:'Charging Port',parts:10,labour:25,cost:35,status:'pending',date:'2026-04-22',notes:'IMEI: 35812345'},
   ];
 }
-save();
+sv();
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function sym(){return currency.symbol;}
-function save(){
-  try{
-    localStorage.setItem('ps-stock',JSON.stringify(stockItems));
-    localStorage.setItem('ps-repairs',JSON.stringify(repairJobs));
-    localStorage.setItem('ps-activity',JSON.stringify(activity));
-    localStorage.setItem('ps-profile',JSON.stringify(profile));
-    localStorage.setItem('ps-currency',JSON.stringify(currency));
-  }catch(e){}
+function fmt(n){return sym()+Number(n||0).toFixed(2);}
+function today(){return new Date().toISOString().split('T')[0];}
+function now(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+
+// ══════════════════════════════════════════
+//  PIN LOCK
+// ══════════════════════════════════════════
+let pinInput='';
+let pinMode='unlock'; // unlock | setup
+
+function hashPin(p){let h=0;for(let i=0;i<p.length;i++){h=((h<<5)-h)+p.charCodeAt(i);h|=0;}return h.toString();}
+
+function checkPin(){
+  if(appSettings.pinEnabled && appSettings.pinHash){
+    document.getElementById('pin-screen').classList.add('show');
+    pinMode='unlock';
+    document.getElementById('pin-subtitle').textContent='Enter PIN to unlock';
+  }
 }
 
-// TABS
-const TABS=['dashboard','stock','repairs','settings'];
+function pinPress(v){
+  if(v==='clear'){pinInput='';updatePinDots();return;}
+  if(v==='del'){pinInput=pinInput.slice(0,-1);updatePinDots();return;}
+  if(pinInput.length>=4) return;
+  pinInput+=v;
+  updatePinDots();
+  if(pinInput.length===4){
+    setTimeout(()=>{
+      if(pinMode==='unlock'){
+        if(hashPin(pinInput)===appSettings.pinHash){
+          document.getElementById('pin-screen').classList.remove('show');
+          document.getElementById('pin-error').textContent='';
+        } else {
+          document.getElementById('pin-error').textContent='Wrong PIN. Try again.';
+          pinInput='';updatePinDots();
+        }
+      }
+    },150);
+  }
+}
+
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    document.getElementById('pd'+i).classList.toggle('filled',i<pinInput.length);
+  }
+}
+
+function savePinSetting(){
+  const np=document.getElementById('pin-new').value.trim();
+  const cp=document.getElementById('pin-confirm').value.trim();
+  if(!np){
+    appSettings.pinEnabled=false;appSettings.pinHash='';
+    sv();closeModal('pin');renderSettings();showToast('🔓 PIN disabled');return;
+  }
+  if(np.length!==4||!/^\d{4}$/.test(np)) return showToast('⚠️ PIN must be 4 digits','error');
+  if(np!==cp) return showToast('⚠️ PINs do not match','error');
+  appSettings.pinEnabled=true;appSettings.pinHash=hashPin(np);
+  sv();closeModal('pin');renderSettings();showToast('🔐 PIN enabled!');
+}
+
+// ══════════════════════════════════════════
+//  THEME
+// ══════════════════════════════════════════
+function applyTheme(){
+  const light=appSettings.theme==='light';
+  document.body.classList.toggle('light-mode',light);
+  document.getElementById('theme-btn').textContent=light?'☀️':'🌙';
+  document.getElementById('theme-icon').textContent=light?'☀️':'🌙';
+  document.getElementById('theme-text').textContent=light?'Light Mode':'Dark Mode';
+  document.getElementById('theme-toggle').classList.toggle('on',light);
+}
+function toggleTheme(){
+  appSettings.theme=appSettings.theme==='dark'?'light':'dark';
+  sv();applyTheme();
+}
+
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
+const TABS=['dashboard','stock','repairs','expenses','analytics','settings'];
+let stockFilter='All';let repairFilter='All';
+
 function switchTab(tab){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
   document.querySelectorAll('.tab')[TABS.indexOf(tab)].classList.add('active');
-  document.getElementById('nav-'+tab).classList.add('active');
+  const ni=document.getElementById('nav-'+tab);
+  if(ni) ni.classList.add('active');
   if(tab==='dashboard') renderDashboard();
-  if(tab==='stock')     renderStock('');
-  if(tab==='repairs')   renderRepairs('');
-  if(tab==='settings')  renderSettings();
+  if(tab==='stock'){renderStockFilters();renderStock('',stockFilter);}
+  if(tab==='repairs'){renderRepairFilters();renderRepairs('',repairFilter);}
+  if(tab==='expenses') renderExpenses();
+  if(tab==='analytics') renderAnalytics();
+  if(tab==='settings') renderSettings();
 }
 
-// DASHBOARD
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
 function renderDashboard(){
-  const today=new Date().toISOString().split('T')[0];
-  const todayProfit=activity.filter(a=>a.type==='sale'&&a.date===today).reduce((s,a)=>s+(a.profit||0),0);
+  const td=today();
+  const todayProfit=activity.filter(a=>a.type==='sale'&&a.date===td).reduce((s,a)=>s+(a.profit||0),0);
   const totalProfit=activity.filter(a=>a.type==='sale').reduce((s,a)=>s+(a.profit||0),0);
   const repairRevenue=repairJobs.filter(r=>r.status==='done').reduce((s,r)=>s+Number(r.cost),0);
-  const pendingRepairs=repairJobs.filter(r=>r.status==='pending'||r.status==='progress').length;
+  const pendingCount=repairJobs.filter(r=>r.status==='pending'||r.status==='progress').length;
+  const totalExpenses=expenses.reduce((s,e)=>s+Number(e.amount),0);
+  const netProfit=totalProfit+repairRevenue-totalExpenses;
+  const inventoryVal=stockItems.reduce((s,i)=>s+i.buy*i.qty,0);
 
   document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card green">
-      <div class="stat-label">Today's Profit</div>
-      <div class="stat-value green">${sym()}${todayProfit.toFixed(2)}</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-label">Total Stock Profit</div>
-      <div class="stat-value blue">${sym()}${totalProfit.toFixed(2)}</div>
-    </div>
-    <div class="stat-card orange">
-      <div class="stat-label">Repair Revenue</div>
-      <div class="stat-value orange">${sym()}${repairRevenue.toFixed(2)}</div>
-    </div>
-    <div class="stat-card red">
-      <div class="stat-label">Open Repairs</div>
-      <div class="stat-value red">${pendingRepairs}</div>
-    </div>`;
+    <div class="stat-card sc-green"><div class="stat-label">Today's Profit</div><div class="stat-value sv-green">${fmt(todayProfit)}</div><div class="stat-trend">💰 Stock sales</div></div>
+    <div class="stat-card sc-blue"><div class="stat-label">Net Profit</div><div class="stat-value sv-blue">${fmt(netProfit)}</div><div class="stat-trend">After expenses</div></div>
+    <div class="stat-card sc-orange"><div class="stat-label">Repair Revenue</div><div class="stat-value sv-orange">${fmt(repairRevenue)}</div><div class="stat-trend">${repairJobs.filter(r=>r.status==='done').length} completed</div></div>
+    <div class="stat-card sc-red"><div class="stat-label">Open Repairs</div><div class="stat-value sv-red">${pendingCount}</div><div class="stat-trend">Needs attention</div></div>
+    <div class="stat-card sc-purple"><div class="stat-label">Inventory Value</div><div class="stat-value sv-purple">${fmt(inventoryVal)}</div><div class="stat-trend">${stockItems.reduce((s,i)=>s+i.qty,0)} units</div></div>
+    <div class="stat-card sc-pink"><div class="stat-label">Total Expenses</div><div class="stat-value sv-pink">${fmt(totalExpenses)}</div><div class="stat-trend">${expenses.length} entries</div></div>
+  `;
 
-  const lowStock=stockItems.filter(i=>i.qty>0&&i.qty<=5);
+  // cloud status
+  const cs=document.getElementById('cloud-status-bar');
+  if(appSettings.lastSync){
+    cs.innerHTML=`<div class="cloud-status">☁️ Last synced: ${new Date(appSettings.lastSync).toLocaleString()}</div>`;
+  } else { cs.innerHTML=''; }
+
+  // alerts
+  const lowStock=stockItems.filter(i=>i.qty<=i.lowQty&&i.qty>0);
   const outStock=stockItems.filter(i=>i.qty===0);
-  const todaySales=activity.filter(a=>a.type==='sale'&&a.date===today);
-  const recentRepairs=[...repairJobs].reverse().slice(0,3);
+  let ah='';
+  if(outStock.length) ah+=`<div class="low-alert">🚫 Out of stock: ${outStock.map(i=>'<b>'+i.name+'</b>').join(', ')}</div>`;
+  if(lowStock.length) ah+=`<div class="low-alert">⚠️ Low stock: ${lowStock.map(i=>i.name+' ('+i.qty+')').join(', ')}</div>`;
+  document.getElementById('dash-alerts').innerHTML=ah;
 
-  let html='';
-  if(outStock.length>0) html+=`<div class="low-stock-alert">🚫 Out of stock: ${outStock.map(i=>i.name).join(', ')}</div>`;
-  if(lowStock.length>0) html+=`<div class="low-stock-alert">⚠️ Low stock: ${lowStock.map(i=>i.name).join(', ')}</div>`;
-
-  if(todaySales.length>0){
-    html+=`<div class="section-header" style="margin-top:8px"><div class="section-title">Today's Sales</div></div>`;
-    todaySales.forEach(s=>{
-      html+=`<div class="item-card" style="padding:10px 14px">
+  // today's sales
+  const ts=activity.filter(a=>a.type==='sale'&&a.date===td);
+  const tTotal=ts.reduce((s,a)=>s+(a.profit||0),0);
+  document.getElementById('today-total').textContent=ts.length?`+${fmt(tTotal)} profit`:'';
+  if(ts.length){
+    document.getElementById('today-sales-list').innerHTML=ts.map(s=>`
+      <div class="item-card" style="padding:10px 12px;margin-bottom:6px;">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px">${s.text}</span>
-          <span style="font-size:13px;color:var(--accent)">+${sym()}${(s.profit||0).toFixed(2)}</span>
-        </div></div>`;
-    });
+          <div><div style="font-size:12px">${s.text}</div><div style="font-size:9px;color:var(--muted)">${s.time||''}</div></div>
+          <div style="text-align:right"><div style="font-size:13px;color:var(--accent)">+${fmt(s.profit)}</div><div style="font-size:9px;color:var(--muted)">Revenue: ${fmt(s.revenue)}</div></div>
+        </div>
+      </div>`).join('');
+  } else {
+    document.getElementById('today-sales-list').innerHTML=`<div class="empty-state" style="padding:20px"><div class="empty-icon">💰</div><div class="empty-text">No sales today yet</div></div>`;
   }
 
-  html+=`<div class="section-header" style="margin-top:8px"><div class="section-title">Recent Repairs</div></div>`;
-  recentRepairs.forEach(r=>{
-    html+=`<div class="item-card">
-      <div class="item-top">
-        <div><div class="item-name">${r.device}</div><div class="item-category">${r.customer} · ${r.issue}</div></div>
+  // recent repairs
+  const rr=[...repairJobs].reverse().slice(0,3);
+  document.getElementById('dash-repairs').innerHTML=rr.length?rr.map(r=>`
+    <div class="repair-card">
+      <div class="repair-top">
+        <div><div class="repair-device">${r.device}</div><div class="repair-id">${r.customer} · ${r.issue}</div></div>
         <div class="status-badge status-${r.status}">${r.status==='progress'?'IN PROGRESS':r.status.toUpperCase()}</div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-        <span style="font-size:11px;color:var(--muted)">${r.date}</span>
-        <span style="font-size:13px;color:var(--accent)">${sym()}${Number(r.cost).toFixed(2)}</span>
-      </div></div>`;
-  });
-  if(recentRepairs.length===0) html+=`<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-text">No Repairs Yet</div></div>`;
-  document.getElementById('recent-activity').innerHTML=html;
+      <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        <span style="font-size:10px;color:var(--muted)">${r.date}</span>
+        <span style="font-size:12px;color:var(--accent)">${fmt(r.cost)}</span>
+      </div>
+    </div>`).join(''):`<div class="empty-state" style="padding:20px"><div class="empty-icon">🔧</div><div class="empty-text">No repairs yet</div></div>`;
 }
 
-// STOCK
-function renderStock(filter){
+// ══════════════════════════════════════════
+//  STOCK
+// ══════════════════════════════════════════
+function renderStockFilters(){
+  const cats=['All',...new Set(stockItems.map(i=>i.category))];
+  document.getElementById('stock-filters').innerHTML=cats.map(c=>`<button class="chip${stockFilter===c?' active':''}" onclick="stockFilter='${c}';renderStockFilters();renderStock(document.getElementById('stock-search').value,'${c}')">${c}</button>`).join('');
+}
+
+function renderStock(filter,catFilter){
+  catFilter=catFilter||stockFilter;
   const list=document.getElementById('stock-list');
   let items=stockItems;
   if(filter) items=items.filter(i=>i.name.toLowerCase().includes(filter.toLowerCase())||i.category.toLowerCase().includes(filter.toLowerCase()));
-  const low=stockItems.filter(i=>i.qty>0&&i.qty<=5).length+stockItems.filter(i=>i.qty===0).length;
+  if(catFilter&&catFilter!=='All') items=items.filter(i=>i.category===catFilter);
+  const low=stockItems.filter(i=>i.qty<=(i.lowQty||5)&&i.qty>0).length+stockItems.filter(i=>i.qty===0).length;
   document.getElementById('low-stock-alert').style.display=low>0?'flex':'none';
-  if(items.length===0){
-    list.innerHTML=`<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No Items Found</div><div class="empty-sub">Tap + Add Item to get started</div></div>`;
-    return;
-  }
+  if(!items.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No Items Found</div><div class="empty-sub">Tap + Add Item</div></div>`;return;}
   list.innerHTML=items.map(item=>{
     const profit=(item.sell-item.buy).toFixed(2);
-    const badge=item.qty===0?'badge-out':item.qty<=5?'badge-low':'badge-stock';
-    const label=item.qty===0?'OUT':item.qty<=5?`${item.qty} LOW`:`${item.qty} IN STOCK`;
+    const totalP=((item.sell-item.buy)*(item.soldQty||0)).toFixed(2);
+    const badge=item.qty===0?'badge-out':item.qty<=(item.lowQty||5)?'badge-low':'badge-stock';
+    const label=item.qty===0?'OUT':item.qty<=(item.lowQty||5)?`${item.qty} LOW`:`${item.qty} IN STOCK`;
     return `<div class="item-card">
       <div class="item-top">
-        <div><div class="item-name">${item.name}</div><div class="item-category">${item.category}</div></div>
+        <div><div class="item-name">${item.name}</div><div class="item-cat">${item.category}${item.supplier?' · '+item.supplier:''}</div></div>
         <div class="badge ${badge}">${label}</div>
       </div>
       <div class="item-prices">
-        <div class="price-block"><div class="price-lbl">Buy</div><div class="price-val">${sym()}${Number(item.buy).toFixed(2)}</div></div>
-        <div class="price-block"><div class="price-lbl">Sell</div><div class="price-val">${sym()}${Number(item.sell).toFixed(2)}</div></div>
+        <div class="price-block"><div class="price-lbl">Buy</div><div class="price-val">${fmt(item.buy)}</div></div>
+        <div class="price-block"><div class="price-lbl">Sell</div><div class="price-val">${fmt(item.sell)}</div></div>
         <div class="price-block"><div class="price-lbl">Profit/unit</div><div class="price-val profit">+${sym()}${profit}</div></div>
+        <div class="price-block"><div class="price-lbl">Total Profit</div><div class="price-val sold">+${sym()}${totalP}</div></div>
       </div>
       <div class="item-actions">
         <button class="btn-sm btn-sell" onclick="openSell('${item.id}')">💰 Sell</button>
         <button class="btn-sm" onclick="openEditStock('${item.id}')">✏️ Edit</button>
+        <button class="btn-sm" onclick="viewReceipt('${item.id}')">🧾</button>
         <button class="btn-sm btn-del" onclick="deleteStock('${item.id}')">🗑</button>
-      </div></div>`;
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -618,7 +955,8 @@ function openStockModal(){
   document.getElementById('s-save-btn').textContent='Add Item';
   document.getElementById('s-qty-label').textContent='Stock Quantity';
   document.getElementById('s-edit-id').value='';
-  ['s-name','s-buy','s-sell','s-qty'].forEach(f=>document.getElementById(f).value='');
+  ['s-name','s-buy','s-sell','s-qty','s-supplier','s-notes'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('s-lowqty').value='5';
   document.getElementById('s-category').selectedIndex=0;
   openModal('stock');
 }
@@ -629,95 +967,130 @@ function openEditStock(id){
   document.getElementById('stock-modal-title').textContent='Edit Item';
   document.getElementById('s-save-btn').textContent='Update Item';
   document.getElementById('s-qty-label').textContent='Current Quantity';
-  // Pre-fill with existing values so user only changes what they want
-  document.getElementById('s-name').value    =item.name;
+  document.getElementById('s-name').value=item.name;
   document.getElementById('s-category').value=item.category;
-  document.getElementById('s-buy').value     =item.buy;
-  document.getElementById('s-sell').value    =item.sell;
-  document.getElementById('s-qty').value     =item.qty;
-  document.getElementById('s-edit-id').value =id;
+  document.getElementById('s-buy').value=item.buy;
+  document.getElementById('s-sell').value=item.sell;
+  document.getElementById('s-qty').value=item.qty;
+  document.getElementById('s-lowqty').value=item.lowQty||5;
+  document.getElementById('s-supplier').value=item.supplier||'';
+  document.getElementById('s-notes').value=item.notes||'';
+  document.getElementById('s-edit-id').value=id;
   openModal('stock');
 }
 
 function saveStock(){
-  const name =document.getElementById('s-name').value.trim();
-  const cat  =document.getElementById('s-category').value;
-  const buy  =parseFloat(document.getElementById('s-buy').value);
-  const sell =parseFloat(document.getElementById('s-sell').value);
-  const qty  =parseInt(document.getElementById('s-qty').value);
-  if(!name||isNaN(buy)||isNaN(sell)||isNaN(qty)) return showToast('⚠️ Fill all fields!');
-  if(qty<0) return showToast('⚠️ Quantity cannot be negative');
-
+  const name=document.getElementById('s-name').value.trim();
+  const cat=document.getElementById('s-category').value;
+  const buy=parseFloat(document.getElementById('s-buy').value);
+  const sell=parseFloat(document.getElementById('s-sell').value);
+  const qty=parseInt(document.getElementById('s-qty').value);
+  const lowQty=parseInt(document.getElementById('s-lowqty').value)||5;
+  const supplier=document.getElementById('s-supplier').value.trim();
+  const notes=document.getElementById('s-notes').value.trim();
+  if(!name||isNaN(buy)||isNaN(sell)||isNaN(qty)) return showToast('⚠️ Fill all required fields','error');
+  if(qty<0) return showToast('⚠️ Quantity cannot be negative','error');
   const editId=document.getElementById('s-edit-id').value;
   if(editId){
-    // TRUE IN-PLACE EDIT — mutate only the specific fields, everything else preserved
     const item=stockItems.find(i=>i.id===editId);
-    if(!item) return showToast('❌ Item not found');
-    item.name    =name;
-    item.category=cat;
-    item.buy     =buy;
-    item.sell    =sell;
-    item.qty     =qty;
-    // item.id, item.soldQty, and any sale history are completely untouched
+    if(!item) return;
+    item.name=name;item.category=cat;item.buy=buy;item.sell=sell;
+    item.qty=qty;item.lowQty=lowQty;item.supplier=supplier;item.notes=notes;
     showToast('✅ Item updated!');
   } else {
-    stockItems.push({id:uid(),name,category:cat,buy,sell,qty,soldQty:0});
+    stockItems.push({id:uid(),name,category:cat,buy,sell,qty,soldQty:0,lowQty,supplier,notes});
     showToast('✅ Item added!');
   }
-  save();
-  closeModal('stock');
-  renderStock(document.getElementById('stock-search').value);
+  sv();closeModal('stock');renderStock(document.getElementById('stock-search').value,stockFilter);
+  if(appSettings.autoSync) syncCloud(true);
 }
 
 function openSell(id){
   const item=stockItems.find(i=>i.id===id);
   if(!item) return;
-  if(item.qty===0) return showToast('❌ Out of stock!');
+  if(item.qty===0) return showToast('❌ Out of stock!','error');
   document.getElementById('sell-item-id').value=id;
-  document.getElementById('sell-item-name').textContent=`${item.name} · ${item.qty} remaining`;
+  document.getElementById('sell-item-info').innerHTML=`
+    <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700">${item.name}</div>
+    <div style="color:var(--muted);font-size:9px;margin-top:3px">${item.category} · ${item.qty} in stock</div>
+    <div style="display:flex;gap:12px;margin-top:8px">
+      <span>Sell: <b style="color:var(--accent)">${fmt(item.sell)}</b></span>
+      <span>Profit/unit: <b style="color:var(--accent)">+${sym()}${(item.sell-item.buy).toFixed(2)}</b></span>
+    </div>`;
   document.getElementById('sell-qty').value=1;
+  document.getElementById('sell-profit-preview').textContent=`Profit: +${fmt(item.sell-item.buy)} · Revenue: ${fmt(item.sell)}`;
+  document.getElementById('sell-qty').oninput=function(){
+    const q=parseInt(this.value)||0;
+    document.getElementById('sell-profit-preview').textContent=q>0?`Profit: +${fmt((item.sell-item.buy)*q)} · Revenue: ${fmt(item.sell*q)}`:'';
+  };
   openModal('sell');
 }
 
 function confirmSell(){
-  const id  =document.getElementById('sell-item-id').value;
-  const qty =parseInt(document.getElementById('sell-qty').value);
+  const id=document.getElementById('sell-item-id').value;
+  const qty=parseInt(document.getElementById('sell-qty').value);
   const item=stockItems.find(i=>i.id===id);
   if(!item) return;
-  if(!qty||qty<1)    return showToast('⚠️ Enter valid quantity');
-  if(qty>item.qty)   return showToast('❌ Not enough stock!');
-  // In-place mutation — only qty and soldQty change
-  item.qty    -=qty;
+  if(!qty||qty<1) return showToast('⚠️ Enter valid quantity','error');
+  if(qty>item.qty) return showToast('❌ Not enough stock!','error');
+  item.qty-=qty;
   item.soldQty=(item.soldQty||0)+qty;
   const profit=parseFloat(((item.sell-item.buy)*qty).toFixed(2));
-  const today =new Date().toISOString().split('T')[0];
-  activity.unshift({type:'sale',text:`Sold ${qty}x ${item.name}`,profit,date:today,dateLabel:new Date().toLocaleDateString()});
-  save();
-  closeModal('sell');
-  renderStock(document.getElementById('stock-search').value);
-  showToast(`✅ Sold ${qty}x · +${sym()}${profit.toFixed(2)} profit`);
+  const revenue=parseFloat((item.sell*qty).toFixed(2));
+  activity.unshift({type:'sale',text:`Sold ${qty}x ${item.name}`,profit,revenue,date:today(),time:now(),dateLabel:new Date().toLocaleDateString(),itemId:id});
+  sv();closeModal('sell');
+  renderStock(document.getElementById('stock-search').value,stockFilter);
+  showToast(`✅ Sold ${qty}x · +${fmt(profit)} profit`);
+  if(appSettings.autoSync) syncCloud(true);
 }
 
 function deleteStock(id){
   stockItems=stockItems.filter(i=>i.id!==id);
-  save();
-  renderStock(document.getElementById('stock-search').value);
-  showToast('🗑 Item deleted');
+  sv();renderStock(document.getElementById('stock-search').value,stockFilter);showToast('🗑 Item deleted');
 }
 
-// REPAIRS
-function renderRepairs(filter){
+function viewReceipt(id){
+  const item=stockItems.find(i=>i.id===id);
+  if(!item) return;
+  const sales=activity.filter(a=>a.itemId===id);
+  const totalSold=sales.reduce((s,a)=>s+(a.revenue||0),0);
+  const totalProfit=sales.reduce((s,a)=>s+(a.profit||0),0);
+  document.getElementById('receipt-content').textContent=
+`━━━━━━━━━━━━━━━━━━━━━━━
+  ${profile.shopName||'PhoneShop'}
+${profile.address?'  '+profile.address+'\n':''}${profile.phone?'  Tel: '+profile.phone+'\n':''}━━━━━━━━━━━━━━━━━━━━━━━
+STOCK ITEM SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━
+Item     : ${item.name}
+Category : ${item.category}
+Buy Price: ${fmt(item.buy)}
+Sell Price: ${fmt(item.sell)}
+Profit/unit: +${sym()}${(item.sell-item.buy).toFixed(2)}
+
+Current Stock: ${item.qty}
+Units Sold: ${item.soldQty||0}
+Total Revenue: ${fmt(totalSold)}
+Total Profit: +${fmt(totalProfit)}
+━━━━━━━━━━━━━━━━━━━━━━━
+Generated: ${new Date().toLocaleString()}`;
+  openModal('receipt');
+}
+
+// ══════════════════════════════════════════
+//  REPAIRS
+// ══════════════════════════════════════════
+function renderRepairFilters(){
+  const statuses=['All','pending','progress','done','cancelled'];
+  document.getElementById('repair-filters').innerHTML=statuses.map(s=>`<button class="chip${repairFilter===s?' active':''}" onclick="repairFilter='${s}';renderRepairFilters();renderRepairs(document.getElementById('repair-search').value,'${s}')">${s==='All'?'All':s==='progress'?'In Progress':s.charAt(0).toUpperCase()+s.slice(1)}</button>`).join('');
+}
+
+function renderRepairs(filter,sfilt){
+  sfilt=sfilt||repairFilter;
   const list=document.getElementById('repair-list');
   let jobs=[...repairJobs].reverse();
-  if(filter) jobs=jobs.filter(r=>
-    r.device.toLowerCase().includes(filter.toLowerCase())||
-    r.customer.toLowerCase().includes(filter.toLowerCase())||
-    r.issue.toLowerCase().includes(filter.toLowerCase())
-  );
-  if(jobs.length===0){
-    list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-text">No Repair Jobs</div><div class="empty-sub">Tap + New Job to add one</div></div>`;
-    return;
-  }
+  if(filter) jobs=jobs.filter(r=>r.device.toLowerCase().includes(filter.toLowerCase())||r.customer.toLowerCase().includes(filter.toLowerCase())||r.issue.toLowerCase().includes(filter.toLowerCase()));
+  if(sfilt&&sfilt!=='All') jobs=jobs.filter(r=>r.status===sfilt);
+  if(!jobs.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-text">No Jobs Found</div><div class="empty-sub">Tap + New Job</div></div>`;return;}
   list.innerHTML=jobs.map(r=>`
     <div class="repair-card">
       <div class="repair-top">
@@ -725,17 +1098,19 @@ function renderRepairs(filter){
         <div class="status-badge status-${r.status}">${r.status==='progress'?'IN PROGRESS':r.status.toUpperCase()}</div>
       </div>
       <div class="repair-detail">👤 ${r.customer} · 📞 ${r.phone}</div>
-      <div class="repair-detail" style="margin-top:4px">🔩 ${r.issue}</div>
+      <div class="repair-detail" style="margin-top:3px">🔩 ${r.issue}${r.notes?' · '+r.notes:''}</div>
       <div class="repair-meta">
-        <div><div class="meta-lbl">Cost</div><div class="meta-val accent">${sym()}${Number(r.cost).toFixed(2)}</div></div>
-        <div><div class="meta-lbl">Status</div><div class="meta-val">${r.status}</div></div>
-        <div><div class="meta-lbl">Date</div><div class="meta-val">${r.date}</div></div>
+        <div><div class="meta-lbl">Parts</div><div class="meta-val">${fmt(r.parts||0)}</div></div>
+        <div><div class="meta-lbl">Labour</div><div class="meta-val">${fmt(r.labour||0)}</div></div>
+        <div><div class="meta-lbl">Charged</div><div class="meta-val accent">${fmt(r.cost)}</div></div>
+        <div><div class="meta-lbl">Profit</div><div class="meta-val" style="color:var(--accent)">+${fmt(Number(r.cost)-(Number(r.parts||0)+Number(r.labour||0)))}</div></div>
       </div>
       <div class="repair-actions">
-        ${r.status!=='done'&&r.status!=='cancelled'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','done')">✅ Done</button>`:''}
-        ${r.status==='pending'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','progress')">▶️ Start</button>`:''}
+        ${r.status!=='done'&&r.status!=='cancelled'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','done')" style="color:var(--accent);border-color:var(--accent)">✅ Done</button>`:''}
+        ${r.status==='pending'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','progress')" style="color:var(--accent3);border-color:var(--accent3)">▶️ Start</button>`:''}
         <button class="btn-status" onclick="openEditRepair('${r.id}')">✏️ Edit</button>
-        <button class="btn-status" style="color:var(--danger);border-color:var(--danger)" onclick="deleteRepair('${r.id}')">🗑</button>
+        <button class="btn-status" onclick="generateRepairReceipt('${r.id}')">🧾 Receipt</button>
+        <button class="btn-status" onclick="deleteRepair('${r.id}')" style="color:var(--danger);border-color:var(--danger)">🗑</button>
       </div>
     </div>`).join('');
 }
@@ -744,8 +1119,16 @@ function openRepairModal(){
   document.getElementById('repair-modal-title').textContent='New Repair Job';
   document.getElementById('r-save-btn').textContent='Add Job';
   document.getElementById('r-edit-id').value='';
-  ['r-customer','r-phone','r-device','r-issue','r-cost'].forEach(f=>document.getElementById(f).value='');
+  ['r-customer','r-phone','r-device','r-issue','r-parts','r-labour','r-cost','r-notes'].forEach(f=>document.getElementById(f).value='');
   document.getElementById('r-status').value='pending';
+  // Auto-calculate total on input
+  ['r-parts','r-labour'].forEach(f=>{
+    document.getElementById(f).oninput=function(){
+      const p=parseFloat(document.getElementById('r-parts').value)||0;
+      const l=parseFloat(document.getElementById('r-labour').value)||0;
+      if(!document.getElementById('r-cost').value) document.getElementById('r-cost').value=(p+l).toFixed(2);
+    };
+  });
   openModal('repair');
 }
 
@@ -755,159 +1138,535 @@ function openEditRepair(id){
   document.getElementById('repair-modal-title').textContent='Edit Repair Job';
   document.getElementById('r-save-btn').textContent='Update Job';
   document.getElementById('r-customer').value=r.customer;
-  document.getElementById('r-phone').value   =r.phone;
-  document.getElementById('r-device').value  =r.device;
-  document.getElementById('r-issue').value   =r.issue;
-  document.getElementById('r-cost').value    =r.cost;
-  document.getElementById('r-status').value  =r.status;
-  document.getElementById('r-edit-id').value =id;
+  document.getElementById('r-phone').value=r.phone;
+  document.getElementById('r-device').value=r.device;
+  document.getElementById('r-issue').value=r.issue;
+  document.getElementById('r-parts').value=r.parts||0;
+  document.getElementById('r-labour').value=r.labour||0;
+  document.getElementById('r-cost').value=r.cost;
+  document.getElementById('r-status').value=r.status;
+  document.getElementById('r-notes').value=r.notes||'';
+  document.getElementById('r-edit-id').value=id;
   openModal('repair');
 }
 
 function saveRepair(){
   const customer=document.getElementById('r-customer').value.trim();
-  const phone   =document.getElementById('r-phone').value.trim();
-  const device  =document.getElementById('r-device').value.trim();
-  const issue   =document.getElementById('r-issue').value.trim();
-  const cost    =parseFloat(document.getElementById('r-cost').value);
-  const status  =document.getElementById('r-status').value;
-  if(!customer||!device||!issue||isNaN(cost)) return showToast('⚠️ Fill all fields!');
+  const phone=document.getElementById('r-phone').value.trim();
+  const device=document.getElementById('r-device').value.trim();
+  const issue=document.getElementById('r-issue').value.trim();
+  const parts=parseFloat(document.getElementById('r-parts').value)||0;
+  const labour=parseFloat(document.getElementById('r-labour').value)||0;
+  const cost=parseFloat(document.getElementById('r-cost').value);
+  const status=document.getElementById('r-status').value;
+  const notes=document.getElementById('r-notes').value.trim();
+  if(!customer||!device||!issue||isNaN(cost)) return showToast('⚠️ Fill required fields','error');
   const editId=document.getElementById('r-edit-id').value;
   if(editId){
-    // TRUE IN-PLACE EDIT — only update changed fields, preserve id and original date
     const r=repairJobs.find(r=>r.id===editId);
-    if(!r) return showToast('❌ Job not found');
-    r.customer=customer;
-    r.phone   =phone;
-    r.device  =device;
-    r.issue   =issue;
-    r.cost    =cost;
-    r.status  =status;
+    if(!r) return;
+    r.customer=customer;r.phone=phone;r.device=device;r.issue=issue;
+    r.parts=parts;r.labour=labour;r.cost=cost;r.status=status;r.notes=notes;
     showToast('✅ Job updated!');
   } else {
-    repairJobs.push({id:uid(),customer,phone,device,issue,cost,status,date:new Date().toISOString().split('T')[0]});
+    repairJobs.push({id:uid(),customer,phone,device,issue,parts,labour,cost,status,notes,date:today()});
     showToast('✅ Repair job added!');
   }
-  save();
-  closeModal('repair');
-  renderRepairs(document.getElementById('repair-search').value);
+  sv();closeModal('repair');renderRepairs(document.getElementById('repair-search').value,repairFilter);
+  if(appSettings.autoSync) syncCloud(true);
 }
 
 function setRepairStatus(id,status){
   const r=repairJobs.find(r=>r.id===id);
-  if(r){r.status=status;save();renderRepairs(document.getElementById('repair-search').value);showToast(`✅ Marked as ${status}`);}
+  if(r){r.status=status;sv();renderRepairs(document.getElementById('repair-search').value,repairFilter);showToast(`✅ Marked as ${status}`);}
 }
 
 function deleteRepair(id){
   repairJobs=repairJobs.filter(r=>r.id!==id);
-  save();
-  renderRepairs(document.getElementById('repair-search').value);
-  showToast('🗑 Job deleted');
+  sv();renderRepairs(document.getElementById('repair-search').value,repairFilter);showToast('🗑 Job deleted');
 }
 
-// SETTINGS
+function generateRepairReceipt(id){
+  const r=repairJobs.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('receipt-content').textContent=
+`━━━━━━━━━━━━━━━━━━━━━━━
+  ${profile.shopName||'PhoneShop Manager'}
+${profile.address?'  '+profile.address+'\n':''}${profile.phone?'  Tel: '+profile.phone+'\n':''}  ${profile.hours||''}
+━━━━━━━━━━━━━━━━━━━━━━━
+        REPAIR RECEIPT
+━━━━━━━━━━━━━━━━━━━━━━━
+Job ID   : #${r.id.slice(-5).toUpperCase()}
+Date     : ${r.date}
+Customer : ${r.customer}
+Phone    : ${r.phone}
+Device   : ${r.device}
+Issue    : ${r.issue}
+${r.notes?'Notes    : '+r.notes+'\n':''}
+━━━━━━━━━━━━━━━━━━━━━━━
+Parts Cost   : ${fmt(r.parts||0)}
+Labour Cost  : ${fmt(r.labour||0)}
+─────────────────────────
+TOTAL CHARGED: ${fmt(r.cost)}
+━━━━━━━━━━━━━━━━━━━━━━━
+Status   : ${r.status.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━
+Thank you for choosing us!
+${new Date().toLocaleString()}`;
+  openModal('receipt');
+}
+
+// ══════════════════════════════════════════
+//  EXPENSES
+// ══════════════════════════════════════════
+function renderExpenses(){
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const monthExp=expenses.filter(e=>e.date.startsWith(thisMonth)).reduce((s,e)=>s+Number(e.amount),0);
+  const totalExp=expenses.reduce((s,e)=>s+Number(e.amount),0);
+  document.getElementById('exp-month').textContent=fmt(monthExp);
+  document.getElementById('exp-total').textContent=fmt(totalExp);
+  const list=document.getElementById('expense-list');
+  if(!expenses.length){list.innerHTML=`<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">No Expenses Yet</div><div class="empty-sub">Track your business costs</div></div>`;return;}
+  list.innerHTML=[...expenses].reverse().map(e=>`
+    <div class="expense-card">
+      <div class="expense-left">
+        <div class="expense-name">${e.name}</div>
+        <div class="expense-meta">${e.category}${e.notes?' · '+e.notes:''}</div>
+      </div>
+      <div class="expense-right">
+        <div class="expense-amount">-${fmt(e.amount)}</div>
+        <div class="expense-date">${e.date}</div>
+        <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
+          <button class="btn-sm" style="padding:4px 8px;font-size:9px" onclick="editExpense('${e.id}')">✏️</button>
+          <button class="btn-sm btn-del" style="padding:4px 8px;font-size:9px" onclick="deleteExpense('${e.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function saveExpense(){
+  const name=document.getElementById('e-name').value.trim();
+  const amount=parseFloat(document.getElementById('e-amount').value);
+  const category=document.getElementById('e-category').value;
+  const notes=document.getElementById('e-notes').value.trim();
+  if(!name||isNaN(amount)) return showToast('⚠️ Fill required fields','error');
+  const editId=document.getElementById('e-edit-id').value;
+  if(editId){
+    const e=expenses.find(e=>e.id===editId);
+    if(e){e.name=name;e.amount=amount;e.category=category;e.notes=notes;}
+    showToast('✅ Expense updated!');
+  } else {
+    expenses.push({id:uid(),name,amount,category,notes,date:today()});
+    showToast('✅ Expense added!');
+  }
+  sv();closeModal('expense');renderExpenses();
+}
+
+function editExpense(id){
+  const e=expenses.find(e=>e.id===id);
+  if(!e) return;
+  document.getElementById('expense-modal-title').textContent='Edit Expense';
+  document.getElementById('e-save-btn').textContent='Update';
+  document.getElementById('e-name').value=e.name;
+  document.getElementById('e-amount').value=e.amount;
+  document.getElementById('e-category').value=e.category;
+  document.getElementById('e-notes').value=e.notes||'';
+  document.getElementById('e-edit-id').value=id;
+  openModal('expense');
+}
+
+function deleteExpense(id){
+  expenses=expenses.filter(e=>e.id!==id);sv();renderExpenses();showToast('🗑 Expense deleted');
+}
+
+// ══════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════
+function renderAnalytics(){
+  const el=document.getElementById('analytics-content');
+  const allSales=activity.filter(a=>a.type==='sale');
+  if(!allSales.length&&!repairJobs.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">No data yet</div><div class="empty-sub">Start making sales to see analytics</div></div>`;
+    return;
+  }
+
+  // Last 7 days profit chart
+  const days7=[];const labels=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const dstr=d.toISOString().split('T')[0];
+    const dayP=allSales.filter(a=>a.date===dstr).reduce((s,a)=>s+(a.profit||0),0);
+    days7.push(dayP);
+    labels.push(d.toLocaleDateString([],{weekday:'short'}));
+  }
+  const maxDay=Math.max(...days7,1);
+
+  // Top selling items
+  const itemSales={};
+  allSales.forEach(a=>{
+    if(a.itemId){
+      if(!itemSales[a.itemId]) itemSales[a.itemId]={profit:0,revenue:0,qty:0};
+      itemSales[a.itemId].profit+=(a.profit||0);
+      itemSales[a.itemId].revenue+=(a.revenue||0);
+    }
+  });
+  const topItems=Object.entries(itemSales).map(([id,v])=>{
+    const item=stockItems.find(i=>i.id===id);
+    return{name:item?item.name:'Deleted Item',...v};
+  }).sort((a,b)=>b.profit-a.profit).slice(0,5);
+
+  // Summary numbers
+  const totalStockProfit=allSales.reduce((s,a)=>s+(a.profit||0),0);
+  const totalRepairProfit=repairJobs.filter(r=>r.status==='done').reduce((s,r)=>s+Number(r.cost)-(Number(r.parts||0)+Number(r.labour||0)),0);
+  const totalExpense=expenses.reduce((s,e)=>s+Number(e.amount),0);
+  const netProfit=totalStockProfit+totalRepairProfit-totalExpense;
+
+  // Repair status breakdown
+  const rDone=repairJobs.filter(r=>r.status==='done').length;
+  const rProg=repairJobs.filter(r=>r.status==='progress').length;
+  const rPend=repairJobs.filter(r=>r.status==='pending').length;
+
+  el.innerHTML=`
+    <div class="analytics-card">
+      <div class="analytics-title">📅 Last 7 Days — Daily Profit</div>
+      <div class="bar-chart">
+        ${days7.map((v,i)=>`
+          <div class="bar-wrap">
+            <div class="bar-val">${v>0?sym()+v.toFixed(0):''}</div>
+            <div class="bar" style="height:${Math.max((v/maxDay)*70,2)}px;background:${v>0?'linear-gradient(180deg,var(--accent),#00b37e)':'var(--border)'}"></div>
+            <div class="bar-label">${labels[i]}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card sc-green"><div class="stat-label">Stock Profit</div><div class="stat-value sv-green">${fmt(totalStockProfit)}</div></div>
+      <div class="stat-card sc-blue"><div class="stat-label">Repair Profit</div><div class="stat-value sv-blue">${fmt(totalRepairProfit)}</div></div>
+      <div class="stat-card sc-red"><div class="stat-label">Total Expenses</div><div class="stat-value sv-red">${fmt(totalExpense)}</div></div>
+      <div class="stat-card sc-purple"><div class="stat-label">Net Profit</div><div class="stat-value sv-purple">${fmt(netProfit)}</div></div>
+    </div>
+
+    <div class="analytics-card">
+      <div class="analytics-title">🏆 Top Selling Items</div>
+      ${topItems.length?`<div class="top-items">${topItems.map((item,i)=>`
+        <div class="top-item">
+          <div class="top-rank">#${i+1}</div>
+          <div class="top-info">
+            <div class="top-name">${item.name}</div>
+            <div class="top-sub">Revenue: ${fmt(item.revenue)}</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${(item.profit/topItems[0].profit*100).toFixed(0)}%"></div></div>
+          </div>
+          <div class="top-val">+${fmt(item.profit)}</div>
+        </div>`).join('')}</div>`:'<div style="color:var(--muted);font-size:11px;text-align:center">No sales data yet</div>'}
+    </div>
+
+    <div class="analytics-card">
+      <div class="analytics-title">🔧 Repair Job Breakdown</div>
+      <div style="display:flex;gap:10px;">
+        <div class="stat-card sc-green" style="flex:1;padding:10px"><div class="stat-label">Done</div><div class="stat-value sv-green" style="font-size:18px">${rDone}</div></div>
+        <div class="stat-card sc-blue" style="flex:1;padding:10px"><div class="stat-label">In Progress</div><div class="stat-value sv-blue" style="font-size:18px">${rProg}</div></div>
+        <div class="stat-card sc-orange" style="flex:1;padding:10px"><div class="stat-label">Pending</div><div class="stat-value sv-orange" style="font-size:18px">${rPend}</div></div>
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <div class="analytics-title">💸 Expense Breakdown</div>
+      ${expenses.length?Object.entries(expenses.reduce((acc,e)=>{acc[e.category]=(acc[e.category]||0)+Number(e.amount);return acc;},{})).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>`
+        <div class="top-item" style="margin-bottom:8px">
+          <div class="top-info">
+            <div class="top-name">${cat}</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${(amt/totalExpense*100).toFixed(0)}%;background:linear-gradient(90deg,var(--danger),var(--accent2))"></div></div>
+          </div>
+          <div class="top-val" style="color:var(--danger)">-${fmt(amt)}</div>
+        </div>`).join(''):'<div style="color:var(--muted);font-size:11px;text-align:center">No expenses yet</div>'}
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════
 function renderSettings(){
-  document.getElementById('profile-avatar').textContent    =profile.emoji||'🏪';
-  document.getElementById('profile-shop-name').textContent =profile.shopName||'My Phone Shop';
-  document.getElementById('shop-name-display').textContent =profile.shopName||'';
-  document.getElementById('profile-owner-display').textContent=profile.owner?`Owner: ${profile.owner}${profile.phone?' · '+profile.phone:''}`:'Tap Edit Profile to set up';
-  document.getElementById('currency-display').textContent  =`${currency.name} (${currency.symbol})`;
+  document.getElementById('profile-avatar').textContent=profile.emoji||'🏪';
+  document.getElementById('profile-shopname').textContent=profile.shopName||'My Phone Shop';
+  document.getElementById('shop-sub').textContent=profile.shopName||'';
+  document.getElementById('profile-sub').textContent=profile.owner?`Owner: ${profile.owner}`:profile.address||'Tap Edit Profile to set up';
+  document.getElementById('currency-display').textContent=`${currency.name} (${currency.symbol})`;
+  document.getElementById('pin-status-text').textContent=appSettings.pinEnabled?'Enabled ✅':'Disabled';
+  document.getElementById('last-sync-text').textContent=appSettings.lastSync?`Last: ${new Date(appSettings.lastSync).toLocaleString()}`:'Never synced';
+  const csText=appSettings.cloudKey?`Connected · Bin: ${appSettings.cloudBin||'pending'}`:'Not connected · Tap Setup to connect';
+  document.getElementById('cloud-status-text').textContent=csText;
+  document.getElementById('sync-dot').className='sync-dot'+(appSettings.cloudKey?' online':'');
+
+  // Profile badges
+  const badges=[];
+  if(profile.phone) badges.push('📞 '+profile.phone);
+  if(profile.hours) badges.push('🕐 '+profile.hours);
+  if(profile.address) badges.push('📍 '+profile.address.split(',')[0]);
+  document.getElementById('profile-badges').innerHTML=badges.map(b=>`<div class="profile-badge">${b}</div>`).join('');
+
+  // Currency list
   document.getElementById('currency-list').innerHTML=CURRENCIES.map(c=>`
     <div class="settings-row" onclick="setCurrency('${c.code}')" style="${c.code===currency.code?'border-color:var(--accent)':''}">
       <div class="settings-row-left">
-        <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--accent);width:40px">${c.symbol}</div>
+        <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:700;color:var(--accent);width:44px">${c.symbol}</div>
         <div><div class="settings-label">${c.name}</div><div class="settings-sub">${c.code}</div></div>
       </div>
-      ${c.code===currency.code?'<div style="color:var(--accent);font-size:16px">✓</div>':''}
+      ${c.code===currency.code?'<div style="color:var(--accent)">✓</div>':''}
     </div>`).join('');
+
+  // Cloud modal prefill
+  document.getElementById('cloud-key').value=appSettings.cloudKey||'';
+  document.getElementById('cloud-bin').value=appSettings.cloudBin||'';
 }
 
 function saveProfile(){
   const sn=document.getElementById('p-shopname').value.trim();
   const ow=document.getElementById('p-owner').value.trim();
   const ph=document.getElementById('p-phone').value.trim();
+  const ad=document.getElementById('p-address').value.trim();
   const em=document.getElementById('p-emoji').value.trim();
+  const hr=document.getElementById('p-hours').value.trim();
   if(sn) profile.shopName=sn;
-  if(ow!==undefined) profile.owner=ow;
-  if(ph!==undefined) profile.phone=ph;
+  profile.owner=ow;profile.phone=ph;profile.address=ad;
   if(em) profile.emoji=em;
-  save();
-  closeModal('profile');
-  renderSettings();
-  showToast('✅ Profile saved!');
+  profile.hours=hr;
+  sv();closeModal('profile');renderSettings();showToast('✅ Profile saved!');
 }
 
 function setCurrency(code){
   currency=CURRENCIES.find(c=>c.code===code)||currency;
-  save();
-  renderSettings();
-  renderDashboard();
-  showToast(`✅ Currency: ${currency.name}`);
+  sv();renderSettings();renderDashboard();showToast(`✅ Currency: ${currency.name}`);
 }
 
-function clearAllData(){
-  showConfirm('Delete ALL stock, repairs and sales data forever?',()=>{
-    stockItems=[];repairJobs=[];activity=[];
-    save();
-    renderDashboard();
-    showToast('🗑 All data cleared');
-  },'🚨','Clear All');
+// ══════════════════════════════════════════
+//  CLEAR DATA — FIXED with typed confirmation
+// ══════════════════════════════════════════
+function promptClearData(){
+  showConfirm(
+    '🚨 DELETE ALL DATA',
+    'This will permanently delete ALL stock, repairs, expenses, sales history and activity. This CANNOT be undone.',
+    ()=>{
+      stockItems=[];repairJobs=[];activity=[];expenses=[];
+      try{
+        ['ps2-stock','ps2-repairs','ps2-activity','ps2-expenses'].forEach(k=>localStorage.removeItem(k));
+      }catch(e){}
+      sv();
+      switchTab('dashboard');
+      showToast('🗑 All data cleared','error');
+    },
+    '🗑️','Yes, Delete Everything'
+  );
 }
 
-// EXPORT / IMPORT
+// ══════════════════════════════════════════
+//  CLOUD BACKUP (JSONBin.io)
+// ══════════════════════════════════════════
+function saveCloudConfig(){
+  const key=document.getElementById('cloud-key').value.trim();
+  const bin=document.getElementById('cloud-bin').value.trim();
+  if(!key) return showToast('⚠️ Enter your API key','error');
+  appSettings.cloudKey=key;
+  appSettings.cloudBin=bin;
+  sv();closeModal('cloud');renderSettings();
+  showToast('✅ Cloud config saved! Syncing...');
+  syncCloud(false);
+}
+
+async function syncCloud(silent=false){
+  if(!appSettings.cloudKey){
+    if(!silent) showToast('⚠️ No cloud key. Go to Settings → Cloud Setup','info');
+    return;
+  }
+  const dot=document.getElementById('sync-dot');
+  dot.className='sync-dot syncing';
+  if(!silent) showToast('☁️ Syncing...','info');
+  const payload={stockItems,repairJobs,activity,expenses,profile,currency,syncedAt:new Date().toISOString()};
+  try{
+    let url,method,headers={
+      'Content-Type':'application/json',
+      'X-Master-Key':appSettings.cloudKey
+    };
+    if(appSettings.cloudBin){
+      url=`https://api.jsonbin.io/v3/b/${appSettings.cloudBin}`;method='PUT';
+    } else {
+      url='https://api.jsonbin.io/v3/b';method='POST';
+      headers['X-Bin-Name']='PhoneShop-'+Date.now();
+      headers['X-Bin-Private']='true';
+    }
+    const res=await fetch(url,{method,headers,body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(!appSettings.cloudBin&&data.metadata){
+      appSettings.cloudBin=data.metadata.id;
+    }
+    appSettings.lastSync=new Date().toISOString();
+    sv();dot.className='sync-dot online';
+    renderSettings();
+    if(!silent) showToast('✅ Cloud sync complete!');
+  } catch(e){
+    dot.className='sync-dot';
+    if(!silent) showToast('❌ Sync failed. Check key/internet','error');
+  }
+}
+
+async function restoreCloud(){
+  if(!appSettings.cloudKey||!appSettings.cloudBin){
+    showToast('⚠️ Set up cloud first in Settings','error');return;
+  }
+  showConfirm('Restore from Cloud?','This will overwrite all local data with your cloud backup.',async()=>{
+    showToast('☁️ Restoring...','info');
+    try{
+      const res=await fetch(`https://api.jsonbin.io/v3/b/${appSettings.cloudBin}/latest`,{
+        headers:{'X-Master-Key':appSettings.cloudKey}
+      });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data=await res.json();
+      const rec=data.record;
+      if(rec.stockItems) stockItems=rec.stockItems;
+      if(rec.repairJobs) repairJobs=rec.repairJobs;
+      if(rec.activity)   activity=rec.activity;
+      if(rec.expenses)   expenses=rec.expenses;
+      if(rec.profile)    profile=rec.profile;
+      if(rec.currency)   currency=rec.currency;
+      sv();renderDashboard();renderSettings();
+      showToast('✅ Data restored from cloud!');
+    } catch(e){showToast('❌ Restore failed. Check connection','error');}
+  },'☁️','Yes, Restore');
+}
+
+// ══════════════════════════════════════════
+//  EXPORT / IMPORT / REPORT
+// ══════════════════════════════════════════
 function exportData(){
-  const data={stockItems,repairJobs,activity,profile,currency,exportedAt:new Date().toISOString()};
+  const data={stockItems,repairJobs,activity,expenses,profile,currency,exportedAt:new Date().toISOString(),version:2};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;
-  a.download=`phoneshop-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.href=URL.createObjectURL(blob);
+  a.download=`phoneshop-backup-${today()}.json`;
   a.click();
-  URL.revokeObjectURL(url);
   showToast('📤 Backup downloaded!');
 }
 
 function importData(event){
-  const file=event.target.files[0];
-  if(!file) return;
+  const file=event.target.files[0];if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      const data=JSON.parse(e.target.result);
-      if(data.stockItems) stockItems=data.stockItems;
-      if(data.repairJobs) repairJobs=data.repairJobs;
-      if(data.activity)   activity  =data.activity;
-      if(data.profile)    profile   =data.profile;
-      if(data.currency)   currency  =data.currency;
-      save();
-      renderDashboard();
-      renderSettings();
-      showToast('📥 Backup restored successfully!');
-    }catch(err){showToast('❌ Invalid backup file');}
+      const d=JSON.parse(e.target.result);
+      if(d.stockItems) stockItems=d.stockItems;
+      if(d.repairJobs) repairJobs=d.repairJobs;
+      if(d.activity)   activity=d.activity;
+      if(d.expenses)   expenses=d.expenses||[];
+      if(d.profile)    profile=d.profile;
+      if(d.currency)   currency=d.currency;
+      sv();renderDashboard();renderSettings();
+      showToast('📥 Backup restored!');
+    } catch(err){showToast('❌ Invalid file','error');}
   };
   reader.readAsText(file);
   event.target.value='';
 }
 
-// MODAL
+function generateReport(){
+  const totalSalesP=activity.filter(a=>a.type==='sale').reduce((s,a)=>s+(a.profit||0),0);
+  const totalRepairR=repairJobs.filter(r=>r.status==='done').reduce((s,r)=>s+Number(r.cost),0);
+  const totalRepairP=repairJobs.filter(r=>r.status==='done').reduce((s,r)=>s+Number(r.cost)-Number(r.parts||0)-Number(r.labour||0),0);
+  const totalExp=expenses.reduce((s,e)=>s+Number(e.amount),0);
+  const net=totalSalesP+totalRepairP-totalExp;
+  const topItem=stockItems.sort((a,b)=>(b.soldQty||0)-(a.soldQty||0))[0];
+  document.getElementById('report-content').textContent=
+`━━━━━━━━━━━━━━━━━━━━━━━
+  ${profile.shopName||'PhoneShop Manager'}
+${profile.owner?'  Owner: '+profile.owner+'\n':''}${profile.address?'  '+profile.address+'\n':''}━━━━━━━━━━━━━━━━━━━━━━━
+     BUSINESS REPORT
+     ${new Date().toLocaleDateString()}
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 STOCK SUMMARY
+  Total Items    : ${stockItems.length}
+  Total Units    : ${stockItems.reduce((s,i)=>s+(i.qty||0),0)}
+  Units Sold     : ${stockItems.reduce((s,i)=>s+(i.soldQty||0),0)}
+  Inventory Value: ${fmt(stockItems.reduce((s,i)=>s+i.buy*i.qty,0))}
+  Stock Profit   : ${fmt(totalSalesP)}
+  Top Item       : ${topItem?topItem.name+' ('+topItem.soldQty+' sold)':'N/A'}
+
+🔧 REPAIR SUMMARY
+  Total Jobs     : ${repairJobs.length}
+  Completed      : ${repairJobs.filter(r=>r.status==='done').length}
+  In Progress    : ${repairJobs.filter(r=>r.status==='progress').length}
+  Pending        : ${repairJobs.filter(r=>r.status==='pending').length}
+  Total Revenue  : ${fmt(totalRepairR)}
+  Repair Profit  : ${fmt(totalRepairP)}
+
+💸 EXPENSES
+  Total Expenses : ${fmt(totalExp)}
+  Entries        : ${expenses.length}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+💰 FINANCIAL SUMMARY
+  Stock Profit   : ${fmt(totalSalesP)}
+  Repair Profit  : ${fmt(totalRepairP)}
+  Total Expenses : -${fmt(totalExp)}
+  ─────────────────────
+  NET PROFIT     : ${fmt(net)}
+━━━━━━━━━━━━━━━━━━━━━━━
+Generated: ${new Date().toLocaleString()}
+PhoneShop Manager v2.0`;
+  openModal('report');
+}
+
+function shareReceipt(){
+  const text=document.getElementById('receipt-content').textContent;
+  if(navigator.share){navigator.share({title:'Receipt',text}).catch(()=>{});}
+  else{navigator.clipboard.writeText(text).then(()=>showToast('📋 Copied to clipboard!'));}
+}
+function shareReport(){
+  const text=document.getElementById('report-content').textContent;
+  if(navigator.share){navigator.share({title:'Business Report',text}).catch(()=>{});}
+  else{navigator.clipboard.writeText(text).then(()=>showToast('📋 Copied to clipboard!'));}
+}
+
+// ══════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════
 function openModal(id){
   if(id==='profile'){
     document.getElementById('p-shopname').value=profile.shopName||'';
-    document.getElementById('p-owner').value   =profile.owner||'';
-    document.getElementById('p-phone').value   =profile.phone||'';
-    document.getElementById('p-emoji').value   =profile.emoji||'🏪';
+    document.getElementById('p-owner').value=profile.owner||'';
+    document.getElementById('p-phone').value=profile.phone||'';
+    document.getElementById('p-address').value=profile.address||'';
+    document.getElementById('p-emoji').value=profile.emoji||'🏪';
+    document.getElementById('p-hours').value=profile.hours||'';
+  }
+  if(id==='expense'){
+    document.getElementById('expense-modal-title').textContent='Add Expense';
+    document.getElementById('e-save-btn').textContent='Add Expense';
+    document.getElementById('e-edit-id').value='';
+    ['e-name','e-amount','e-notes'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('e-category').selectedIndex=0;
+  }
+  if(id==='cloud'){
+    document.getElementById('cloud-key').value=appSettings.cloudKey||'';
+    document.getElementById('cloud-bin').value=appSettings.cloudBin||'';
+  }
+  if(id==='pin'){
+    document.getElementById('pin-new').value='';
+    document.getElementById('pin-confirm').value='';
   }
   document.getElementById('modal-'+id).classList.add('open');
 }
 function closeModal(id){document.getElementById('modal-'+id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open');});
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
 });
 
-// CONFIRM
+// ══════════════════════════════════════════
+//  CONFIRM
+// ══════════════════════════════════════════
 let _cb=null;
-function showConfirm(msg,cb,icon='🗑️',yesLabel='Delete'){
+function showConfirm(title,msg,cb,icon='🗑️',yesLabel='Delete'){
   document.getElementById('confirm-icon').textContent=icon;
+  document.getElementById('confirm-title').textContent=title;
   document.getElementById('confirm-msg').textContent=msg;
   document.getElementById('confirm-yes-btn').textContent=yesLabel;
   _cb=cb;
@@ -916,22 +1675,59 @@ function showConfirm(msg,cb,icon='🗑️',yesLabel='Delete'){
 }
 function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('open');_cb=null;}
 
-// TOAST
-function showToast(msg){
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg,type=''){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// SERVICE WORKER
+// ══════════════════════════════════════════
+//  SERVICE WORKER (offline)
+// ══════════════════════════════════════════
 if('serviceWorker' in navigator){
-  const sw=`const C='ps-v2';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['/'])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim();});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>{if(r)return r;return fetch(e.request).then(res=>{if(!res||res.status!==200)return res;const c=res.clone();caches.open(C).then(ca=>ca.put(e.request,c));return res;}).catch(()=>r);}));});`;
-  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+  const sw=`
+    const C='ps-gm-v1';
+    const ASSETS=['/'];
+    self.addEventListener('install',e=>{
+      e.waitUntil(caches.open(C).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
+    });
+    self.addEventListener('activate',e=>{
+      e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+    });
+    self.addEventListener('fetch',e=>{
+      if(e.request.url.includes('api.jsonbin.io')||e.request.url.includes('fonts.googleapis')){
+        e.respondWith(fetch(e.request).catch(()=>new Response('')));
+        return;
+      }
+      e.respondWith(
+        caches.match(e.request).then(cached=>{
+          if(cached) return cached;
+          return fetch(e.request).then(res=>{
+            if(res&&res.status===200){
+              const clone=res.clone();
+              caches.open(C).then(c=>c.put(e.request,clone));
+            }
+            return res;
+          }).catch(()=>cached||new Response('Offline'));
+        })
+      );
+    });`;
+  navigator.serviceWorker.register(
+    URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))
+  ).catch(()=>{});
 }
 
-// INIT
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+applyTheme();
+checkPin();
 renderDashboard();
-renderSettings();
 </script>
 </body>
 </html>
