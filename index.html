@@ -30,12 +30,7 @@
 /* SVG icon sizing */
 .nav-icon svg{width:20px;height:20px;stroke:currentColor;}
 .settings-icon svg{width:20px;height:20px;stroke:currentColor;}
-.hdr-btn svg{
-  width:16px;
-  height:16px;
-  fill:currentColor;
-  vertical-align:middle;
-}
+.hdr-btn svg{width:16px;height:16px;stroke:currentColor;vertical-align:middle;}
 .profile-avatar svg{width:32px;height:32px;stroke:white;}
 .confirm-icon svg{width:36px;height:36px;stroke:currentColor;}
 .empty-icon svg{width:36px;height:36px;stroke:currentColor;}
@@ -222,7 +217,7 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
 .confirm-overlay.open{display:flex;}
 .confirm-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 22px;width:100%;max-width:320px;text-align:center;animation:popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);}
 @keyframes popIn{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
-.confirm-icon{font-size:40px;margin-bottom:10px;}
+.confirm-icon{font-size:40px;margin-bottom:10px;line-height:1;}
 .confirm-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;}
 .confirm-msg{font-size:11px;color:var(--muted);margin-bottom:22px;line-height:1.5;}
 .confirm-btns{display:flex;gap:10px;}
@@ -311,13 +306,8 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
     </div>
     <div class="header-actions">
       <button class="hdr-btn" onclick="syncCloud()" title="Sync to cloud"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg><span class="sync-dot" id="sync-dot"></span></button>
-     <button class="hdr-btn" onclick="toggleTheme()" id="theme-btn">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-  </svg>
-  <span class="sr-only">Toggle theme</span>
-</button> 
-      </div>
+      <button class="hdr-btn" onclick="toggleTheme()" id="theme-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    </div>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('dashboard')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Home</button>
@@ -820,12 +810,12 @@ function savePinSetting(){
   const cp=document.getElementById('pin-confirm').value.trim();
   if(!np){
     appSettings.pinEnabled=false;appSettings.pinHash='';
-    sv();closeModal('pin');renderSettings();showToast('🔓 PIN disabled');return;
+    sv();closeModal('pin');renderSettings();showToast('PIN disabled');return;
   }
-  if(np.length!==4||!/^\d{4}$/.test(np)) return showToast('[!] PIN must be 4 digits','error');
-  if(np!==cp) return showToast('[!] PINs do not match','error');
+  if(np.length!==4||!/^\d{4}$/.test(np)) return showToast('PIN must be 4 digits','error');
+  if(np!==cp) return showToast('PINs do not match','error');
   appSettings.pinEnabled=true;appSettings.pinHash=hashPin(np);
-  sv();closeModal('pin');renderSettings();showToast('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> PIN enabled!');
+  sv();closeModal('pin');renderSettings();showToast('PIN enabled!');
 }
 
 // ══════════════════════════════════════════
@@ -834,37 +824,10 @@ function savePinSetting(){
 function applyTheme(){
   const light=appSettings.theme==='light';
   document.body.classList.toggle('light-mode',light);
-document.getElementById('theme-btn').innerHTML =
-  light
-    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>`
-    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>`;
-document.getElementById('theme-icon').innerHTML = light
-  ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>`
-  : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>`;
+  const sunSVG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  const moonSVG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  document.getElementById('theme-btn').innerHTML=light?sunSVG:moonSVG;
+  document.getElementById('theme-icon').innerHTML=light?sunSVG:moonSVG;
   document.getElementById('theme-text').textContent=light?'Light Mode':'Dark Mode';
   document.getElementById('theme-toggle').classList.toggle('on',light);
 }
@@ -904,18 +867,21 @@ function renderDashboard(){
   const todayProfit=activity.filter(a=>a.type==='sale'&&a.date===td).reduce((s,a)=>s+(a.profit||0),0);
   const totalProfit=activity.filter(a=>a.type==='sale').reduce((s,a)=>s+(a.profit||0),0);
   const repairRevenue=repairJobs.filter(r=>r.status==='done').reduce((s,r)=>s+Number(r.cost),0);
+  const todayRepairRevenue=repairJobs.filter(r=>r.status==='done'&&r.date===td).reduce((s,r)=>s+Number(r.cost),0);
   const pendingCount=repairJobs.filter(r=>r.status==='pending'||r.status==='progress').length;
   const totalExpenses=expenses.reduce((s,e)=>s+Number(e.amount),0);
   const netProfit=totalProfit+repairRevenue-totalExpenses;
   const inventoryVal=stockItems.reduce((s,i)=>s+i.buy*i.qty,0);
+  const totalStockUsed=stockItems.reduce((s,i)=>s+(i.soldQty||0),0);
+  const totalStockValue=stockItems.reduce((s,i)=>s+i.sell*(i.soldQty||0),0);
 
   document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card sc-green"><div class="stat-label">Today's Profit</div><div class="stat-value sv-green">${fmt(todayProfit)}</div><div class="stat-trend"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="18"/></svg> Stock sales</div></div>
-    <div class="stat-card sc-blue"><div class="stat-label">Net Profit</div><div class="stat-value sv-blue">${fmt(netProfit)}</div><div class="stat-trend">After expenses</div></div>
-    <div class="stat-card sc-orange"><div class="stat-label">Repair Revenue</div><div class="stat-value sv-orange">${fmt(repairRevenue)}</div><div class="stat-trend">${repairJobs.filter(r=>r.status==='done').length} completed</div></div>
+    <div class="stat-card sc-green"><div class="stat-label">Today's Stock Profit</div><div class="stat-value sv-green">${fmt(todayProfit)}</div><div class="stat-trend">From stock sales</div></div>
+    <div class="stat-card sc-blue"><div class="stat-label">Today's Repair Rev.</div><div class="stat-value sv-blue">${fmt(todayRepairRevenue)}</div><div class="stat-trend">${repairJobs.filter(r=>r.status==='done'&&r.date===td).length} jobs done today</div></div>
+    <div class="stat-card sc-orange"><div class="stat-label">Total Repair Revenue</div><div class="stat-value sv-orange">${fmt(repairRevenue)}</div><div class="stat-trend">${repairJobs.filter(r=>r.status==='done').length} completed total</div></div>
     <div class="stat-card sc-red"><div class="stat-label">Open Repairs</div><div class="stat-value sv-red">${pendingCount}</div><div class="stat-trend">Needs attention</div></div>
-    <div class="stat-card sc-purple"><div class="stat-label">Inventory Value</div><div class="stat-value sv-purple">${fmt(inventoryVal)}</div><div class="stat-trend">${stockItems.reduce((s,i)=>s+i.qty,0)} units</div></div>
-    <div class="stat-card sc-pink"><div class="stat-label">Total Expenses</div><div class="stat-value sv-pink">${fmt(totalExpenses)}</div><div class="stat-trend">${expenses.length} entries</div></div>
+    <div class="stat-card sc-purple"><div class="stat-label">Total Stock Used</div><div class="stat-value sv-purple">${totalStockUsed}</div><div class="stat-trend">Units sold · ${fmt(totalStockValue)} revenue</div></div>
+    <div class="stat-card sc-pink"><div class="stat-label">Net Profit</div><div class="stat-value sv-pink">${fmt(netProfit)}</div><div class="stat-trend">After ${fmt(totalExpenses)} expenses</div></div>
   `;
 
   // cloud status
@@ -928,8 +894,8 @@ function renderDashboard(){
   const lowStock=stockItems.filter(i=>i.qty<=i.lowQty&&i.qty>0);
   const outStock=stockItems.filter(i=>i.qty===0);
   let ah='';
-  if(outStock.length) ah+=`<div class="low-alert">[X] Out of stock: ${outStock.map(i=>'<b>'+i.name+'</b>').join(', ')}</div>`;
-  if(lowStock.length) ah+=`<div class="low-alert">[!] Low stock: ${lowStock.map(i=>i.name+' ('+i.qty+')').join(', ')}</div>`;
+  if(outStock.length) ah+=`<div class="low-alert">OUT OF STOCK: ${outStock.map(i=>'<b>'+i.name+'</b>').join(', ')}</div>`;
+  if(lowStock.length) ah+=`<div class="low-alert">LOW STOCK: ${lowStock.map(i=>i.name+' ('+i.qty+')').join(', ')}</div>`;
   document.getElementById('dash-alerts').innerHTML=ah;
 
   // today's sales
@@ -1044,18 +1010,18 @@ function saveStock(){
   const lowQty=parseInt(document.getElementById('s-lowqty').value)||5;
   const supplier=document.getElementById('s-supplier').value.trim();
   const notes=document.getElementById('s-notes').value.trim();
-  if(!name||isNaN(buy)||isNaN(sell)||isNaN(qty)) return showToast('[!] Fill all required fields','error');
-  if(qty<0) return showToast('[!] Quantity cannot be negative','error');
+  if(!name||isNaN(buy)||isNaN(sell)||isNaN(qty)) return showToast('Fill all required fields','error');
+  if(qty<0) return showToast('Quantity cannot be negative','error');
   const editId=document.getElementById('s-edit-id').value;
   if(editId){
     const item=stockItems.find(i=>i.id===editId);
     if(!item) return;
     item.name=name;item.category=cat;item.buy=buy;item.sell=sell;
     item.qty=qty;item.lowQty=lowQty;item.supplier=supplier;item.notes=notes;
-    showToast('[OK] Item updated!');
+    showToast('Item updated!');
   } else {
     stockItems.push({id:uid(),name,category:cat,buy,sell,qty,soldQty:0,lowQty,supplier,notes});
-    showToast('[OK] Item added!');
+    showToast('Item added!');
   }
   sv();closeModal('stock');renderStock(document.getElementById('stock-search').value,stockFilter);
   if(appSettings.autoSync) syncCloud(true);
@@ -1064,7 +1030,7 @@ function saveStock(){
 function openSell(id){
   const item=stockItems.find(i=>i.id===id);
   if(!item) return;
-  if(item.qty===0) return showToast('[X] Out of stock!','error');
+  if(item.qty===0) return showToast('Out of stock!','error');
   document.getElementById('sell-item-id').value=id;
   document.getElementById('sell-item-info').innerHTML=`
     <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700">${item.name}</div>
@@ -1087,8 +1053,8 @@ function confirmSell(){
   const qty=parseInt(document.getElementById('sell-qty').value);
   const item=stockItems.find(i=>i.id===id);
   if(!item) return;
-  if(!qty||qty<1) return showToast('[!] Enter valid quantity','error');
-  if(qty>item.qty) return showToast('[X] Not enough stock!','error');
+  if(!qty||qty<1) return showToast('Enter valid quantity','error');
+  if(qty>item.qty) return showToast('Not enough stock!','error');
   item.qty-=qty;
   item.soldQty=(item.soldQty||0)+qty;
   const profit=parseFloat(((item.sell-item.buy)*qty).toFixed(2));
@@ -1096,13 +1062,13 @@ function confirmSell(){
   activity.unshift({type:'sale',text:`Sold ${qty}x ${item.name}`,profit,revenue,date:today(),time:now(),dateLabel:new Date().toLocaleDateString(),itemId:id});
   sv();closeModal('sell');
   renderStock(document.getElementById('stock-search').value,stockFilter);
-  showToast(`[OK] Sold ${qty}x · +${fmt(profit)} profit`);
+  showToast(`Sold ${qty}x · +${fmt(profit)} profit`);
   if(appSettings.autoSync) syncCloud(true);
 }
 
 function deleteStock(id){
   stockItems=stockItems.filter(i=>i.id!==id);
-  sv();renderStock(document.getElementById('stock-search').value,stockFilter);showToast('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Item deleted');
+  sv();renderStock(document.getElementById('stock-search').value,stockFilter);showToast('Item deleted');
 }
 
 function viewReceipt(id){
@@ -1162,8 +1128,8 @@ function renderRepairs(filter,sfilt){
         <div><div class="meta-lbl">Profit</div><div class="meta-val" style="color:var(--accent)">+${fmt(Number(r.cost)-(Number(r.parts||0)+Number(r.labour||0)))}</div></div>
       </div>
       <div class="repair-actions">
-        ${r.status!=='done'&&r.status!=='cancelled'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','done')" style="color:var(--accent);border-color:var(--accent)">[OK] Done</button>`:''}
-        ${r.status==='pending'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','progress')" style="color:var(--accent3);border-color:var(--accent3)">[>] Start</button>`:''}
+        ${r.status!=='done'&&r.status!=='cancelled'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','done')" style="color:var(--accent);border-color:var(--accent)">Done</button>`:''}
+        ${r.status==='pending'?`<button class="btn-status" onclick="setRepairStatus('${r.id}','progress')" style="color:var(--accent3);border-color:var(--accent3)">Start</button>`:''}
         <button class="btn-status" onclick="openEditRepair('${r.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
         <button class="btn-status" onclick="generateRepairReceipt('${r.id}')">Receipt Receipt</button>
         <button class="btn-status" onclick="deleteRepair('${r.id}')" style="color:var(--danger);border-color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
@@ -1216,17 +1182,17 @@ function saveRepair(){
   const cost=parseFloat(document.getElementById('r-cost').value);
   const status=document.getElementById('r-status').value;
   const notes=document.getElementById('r-notes').value.trim();
-  if(!customer||!device||!issue||isNaN(cost)) return showToast('[!] Fill required fields','error');
+  if(!customer||!device||!issue||isNaN(cost)) return showToast('Fill required fields','error');
   const editId=document.getElementById('r-edit-id').value;
   if(editId){
     const r=repairJobs.find(r=>r.id===editId);
     if(!r) return;
     r.customer=customer;r.phone=phone;r.device=device;r.issue=issue;
     r.parts=parts;r.labour=labour;r.cost=cost;r.status=status;r.notes=notes;
-    showToast('[OK] Job updated!');
+    showToast('Job updated!');
   } else {
     repairJobs.push({id:uid(),customer,phone,device,issue,parts,labour,cost,status,notes,date:today()});
-    showToast('[OK] Repair job added!');
+    showToast('Repair job added!');
   }
   sv();closeModal('repair');renderRepairs(document.getElementById('repair-search').value,repairFilter);
   if(appSettings.autoSync) syncCloud(true);
@@ -1234,12 +1200,12 @@ function saveRepair(){
 
 function setRepairStatus(id,status){
   const r=repairJobs.find(r=>r.id===id);
-  if(r){r.status=status;sv();renderRepairs(document.getElementById('repair-search').value,repairFilter);showToast(`[OK] Marked as ${status}`);}
+  if(r){r.status=status;sv();renderRepairs(document.getElementById('repair-search').value,repairFilter);showToast(`Marked as ${status}`);}
 }
 
 function deleteRepair(id){
   repairJobs=repairJobs.filter(r=>r.id!==id);
-  sv();renderRepairs(document.getElementById('repair-search').value,repairFilter);showToast('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Job deleted');
+  sv();renderRepairs(document.getElementById('repair-search').value,repairFilter);showToast('Job deleted');
 }
 
 function generateRepairReceipt(id){
@@ -1305,15 +1271,15 @@ function saveExpense(){
   const amount=parseFloat(document.getElementById('e-amount').value);
   const category=document.getElementById('e-category').value;
   const notes=document.getElementById('e-notes').value.trim();
-  if(!name||isNaN(amount)) return showToast('[!] Fill required fields','error');
+  if(!name||isNaN(amount)) return showToast('Fill required fields','error');
   const editId=document.getElementById('e-edit-id').value;
   if(editId){
     const e=expenses.find(e=>e.id===editId);
     if(e){e.name=name;e.amount=amount;e.category=category;e.notes=notes;}
-    showToast('[OK] Expense updated!');
+    showToast('Expense updated!');
   } else {
     expenses.push({id:uid(),name,amount,category,notes,date:today()});
-    showToast('[OK] Expense added!');
+    showToast('Expense added!');
   }
   sv();closeModal('expense');renderExpenses();
 }
@@ -1332,7 +1298,7 @@ function editExpense(id){
 }
 
 function deleteExpense(id){
-  expenses=expenses.filter(e=>e.id!==id);sv();renderExpenses();showToast('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Expense deleted');
+  expenses=expenses.filter(e=>e.id!==id);sv();renderExpenses();showToast('Expense deleted');
 }
 
 // ══════════════════════════════════════════
@@ -1442,12 +1408,12 @@ function renderAnalytics(){
 //  SETTINGS
 // ══════════════════════════════════════════
 function renderSettings(){
-  document.getElementById('profile-avatar').textContent=profile.emoji||'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+  document.getElementById('profile-avatar').innerHTML=profile.emoji||'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
   document.getElementById('profile-shopname').textContent=profile.shopName||'My Phone Shop';
   document.getElementById('shop-sub').textContent=profile.shopName||'';
   document.getElementById('profile-sub').textContent=profile.owner?`Owner: ${profile.owner}`:profile.address||'Tap Edit Profile to set up';
   document.getElementById('currency-display').textContent=`${currency.name} (${currency.symbol})`;
-  document.getElementById('pin-status-text').textContent=appSettings.pinEnabled?'Enabled [OK]':'Disabled';
+  document.getElementById('pin-status-text').textContent=appSettings.pinEnabled?'Enabled':'Disabled';
   document.getElementById('last-sync-text').textContent=appSettings.lastSync?`Last: ${new Date(appSettings.lastSync).toLocaleString()}`:'Never synced';
   const csText=appSettings.cloudKey?`Connected · Bin: ${appSettings.cloudBin||'pending'}`:'Not connected · Tap Setup to connect';
   document.getElementById('cloud-status-text').textContent=csText;
@@ -1486,12 +1452,12 @@ function saveProfile(){
   profile.owner=ow;profile.phone=ph;profile.address=ad;
   if(em) profile.emoji=em;
   profile.hours=hr;
-  sv();closeModal('profile');renderSettings();showToast('[OK] Profile saved!');
+  sv();closeModal('profile');renderSettings();showToast('Profile saved!');
 }
 
 function setCurrency(code){
   currency=CURRENCIES.find(c=>c.code===code)||currency;
-  sv();renderSettings();renderDashboard();showToast(`[OK] Currency: ${currency.name}`);
+  sv();renderSettings();renderDashboard();showToast(`Currency set to ${currency.name}`);
 }
 
 // ══════════════════════════════════════════
@@ -1499,7 +1465,7 @@ function setCurrency(code){
 // ══════════════════════════════════════════
 function promptClearData(){
   showConfirm(
-    '[!!] DELETE ALL DATA',
+    'Delete All Data',
     'This will permanently delete ALL stock, repairs, expenses, sales history and activity. This CANNOT be undone.',
     ()=>{
       stockItems=[];repairJobs=[];activity=[];expenses=[];
@@ -1508,7 +1474,7 @@ function promptClearData(){
       }catch(e){}
       sv();
       switchTab('dashboard');
-      showToast('<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> All data cleared','error');
+      showToast('All data cleared','error');
     },
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>️','Yes, Delete Everything'
   );
@@ -1520,22 +1486,22 @@ function promptClearData(){
 function saveCloudConfig(){
   const key=document.getElementById('cloud-key').value.trim();
   const bin=document.getElementById('cloud-bin').value.trim();
-  if(!key) return showToast('[!] Enter your API key','error');
+  if(!key) return showToast('Enter your API key','error');
   appSettings.cloudKey=key;
   appSettings.cloudBin=bin;
   sv();closeModal('cloud');renderSettings();
-  showToast('[OK] Cloud config saved! Syncing...');
+  showToast('Cloud saved! Syncing...');
   syncCloud(false);
 }
 
 async function syncCloud(silent=false){
   if(!appSettings.cloudKey){
-    if(!silent) showToast('[!] No cloud key. Go to Settings → Cloud Setup','info');
+    if(!silent) showToast('No cloud key. Go to Settings → Cloud Setup','info');
     return;
   }
   const dot=document.getElementById('sync-dot');
   dot.className='sync-dot syncing';
-  if(!silent) showToast('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> Syncing...','info');
+  if(!silent) showToast('Syncing...','info');
   const payload={stockItems,repairJobs,activity,expenses,profile,currency,syncedAt:new Date().toISOString()};
   try{
     let url,method,headers={
@@ -1558,19 +1524,19 @@ async function syncCloud(silent=false){
     appSettings.lastSync=new Date().toISOString();
     sv();dot.className='sync-dot online';
     renderSettings();
-    if(!silent) showToast('[OK] Cloud sync complete!');
+    if(!silent) showToast('Cloud sync complete!');
   } catch(e){
     dot.className='sync-dot';
-    if(!silent) showToast('[X] Sync failed. Check key/internet','error');
+    if(!silent) showToast('Sync failed. Check key/internet','error');
   }
 }
 
 async function restoreCloud(){
   if(!appSettings.cloudKey||!appSettings.cloudBin){
-    showToast('[!] Set up cloud first in Settings','error');return;
+    showToast('Set up cloud first in Settings','error');return;
   }
   showConfirm('Restore from Cloud?','This will overwrite all local data with your cloud backup.',async()=>{
-    showToast('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> Restoring...','info');
+    showToast('Restoring...','info');
     try{
       const res=await fetch(`https://api.jsonbin.io/v3/b/${appSettings.cloudBin}/latest`,{
         headers:{'X-Master-Key':appSettings.cloudKey}
@@ -1585,8 +1551,8 @@ async function restoreCloud(){
       if(rec.profile)    profile=rec.profile;
       if(rec.currency)   currency=rec.currency;
       sv();renderDashboard();renderSettings();
-      showToast('[OK] Data restored from cloud!');
-    } catch(e){showToast('[X] Restore failed. Check connection','error');}
+      showToast('Data restored from cloud!');
+    } catch(e){showToast('Restore failed. Check connection','error');}
   },'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>','Yes, Restore');
 }
 
@@ -1594,13 +1560,83 @@ async function restoreCloud(){
 //  EXPORT / IMPORT / REPORT
 // ══════════════════════════════════════════
 function exportData(){
-  const data={stockItems,repairJobs,activity,expenses,profile,currency,exportedAt:new Date().toISOString(),version:2};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`phoneshop-backup-${today()}.json`;
-  a.click();
-  showToast('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Backup downloaded!');
+  try{
+    const data={stockItems,repairJobs,activity,expenses,profile,currency,exportedAt:new Date().toISOString(),version:2};
+    const json=JSON.stringify(data,null,2);
+    // Method 1: Try standard download link
+    try{
+      const blob=new Blob([json],{type:'application/octet-stream'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='phoneshop-backup-'+today()+'.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      showToast('Backup file saved!');
+      return;
+    }catch(e1){}
+    // Method 2: Base64 data URI fallback (works in WebView)
+    try{
+      const b64=btoa(unescape(encodeURIComponent(json)));
+      const a=document.createElement('a');
+      a.href='data:application/octet-stream;base64,'+b64;
+      a.download='phoneshop-backup-'+today()+'.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('Backup file saved!');
+      return;
+    }catch(e2){}
+    // Method 3: Show data in a modal so user can copy it
+    showExportModal(json);
+  }catch(e){
+    showToast('Export failed: '+e.message,'error');
+  }
+}
+
+function showExportModal(json){
+  // Create a temporary modal with the JSON so user can copy/share it
+  let m=document.getElementById('modal-export-data');
+  if(!m){
+    m=document.createElement('div');
+    m.id='modal-export-data';
+    m.className='modal-overlay';
+    m.innerHTML=`<div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Export Backup</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;">Download failed. Tap Share to send via WhatsApp/email, or Copy to clipboard.</div>
+      <textarea class="form-textarea" id="export-json-text" style="min-height:120px;font-size:9px;" readonly></textarea>
+      <div class="modal-actions" style="margin-top:12px;">
+        <button class="btn-cancel" onclick="document.getElementById('modal-export-data').classList.remove('open')">Close</button>
+        <button class="btn-save blue" onclick="copyExportData()">Copy</button>
+        <button class="btn-save" onclick="shareExportData()">Share</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+  }
+  document.getElementById('export-json-text').value=json;
+  m.classList.add('open');
+}
+
+function copyExportData(){
+  const t=document.getElementById('export-json-text');
+  t.select();
+  try{
+    navigator.clipboard.writeText(t.value).then(()=>showToast('Copied!'));
+  }catch(e){
+    document.execCommand('copy');
+    showToast('Copied!');
+  }
+}
+
+function shareExportData(){
+  const text=document.getElementById('export-json-text').value;
+  if(navigator.share){
+    navigator.share({title:'PhoneShop Backup',text}).catch(()=>showToast('Share cancelled'));
+  } else { showToast('Share not available on this device','error'); }
 }
 
 function importData(event){
@@ -1616,8 +1652,8 @@ function importData(event){
       if(d.profile)    profile=d.profile;
       if(d.currency)   currency=d.currency;
       sv();renderDashboard();renderSettings();
-      showToast('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Backup restored!');
-    } catch(err){showToast('[X] Invalid file','error');}
+      showToast('Backup restored!');
+    } catch(err){showToast('Invalid file','error');}
   };
   reader.readAsText(file);
   event.target.value='';
@@ -1630,15 +1666,15 @@ function generateReport(){
   const totalExp=expenses.reduce((s,e)=>s+Number(e.amount),0);
   const net=totalSalesP+totalRepairP-totalExp;
   const topItem=stockItems.sort((a,b)=>(b.soldQty||0)-(a.soldQty||0))[0];
-  document.getElementById('report-content').textContent=
+  const reportText=
 `━━━━━━━━━━━━━━━━━━━━━━━
   ${profile.shopName||'PhoneShop Manager'}
 ${profile.owner?'  Owner: '+profile.owner+'\n':''}${profile.address?'  '+profile.address+'\n':''}━━━━━━━━━━━━━━━━━━━━━━━
-     BUSINESS REPORT
-     ${new Date().toLocaleDateString()}
+       BUSINESS REPORT
+       ${new Date().toLocaleDateString()}
 ━━━━━━━━━━━━━━━━━━━━━━━
 
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> STOCK SUMMARY
+[STOCK SUMMARY]
   Total Items    : ${stockItems.length}
   Total Units    : ${stockItems.reduce((s,i)=>s+(i.qty||0),0)}
   Units Sold     : ${stockItems.reduce((s,i)=>s+(i.soldQty||0),0)}
@@ -1646,7 +1682,7 @@ ${profile.owner?'  Owner: '+profile.owner+'\n':''}${profile.address?'  '+profile
   Stock Profit   : ${fmt(totalSalesP)}
   Top Item       : ${topItem?topItem.name+' ('+topItem.soldQty+' sold)':'N/A'}
 
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> REPAIR SUMMARY
+[REPAIR SUMMARY]
   Total Jobs     : ${repairJobs.length}
   Completed      : ${repairJobs.filter(r=>r.status==='done').length}
   In Progress    : ${repairJobs.filter(r=>r.status==='progress').length}
@@ -1654,12 +1690,12 @@ ${profile.owner?'  Owner: '+profile.owner+'\n':''}${profile.address?'  '+profile
   Total Revenue  : ${fmt(totalRepairR)}
   Repair Profit  : ${fmt(totalRepairP)}
 
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> EXPENSES
+[EXPENSES]
   Total Expenses : ${fmt(totalExp)}
   Entries        : ${expenses.length}
 
 ━━━━━━━━━━━━━━━━━━━━━━━
-<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="18"/></svg> FINANCIAL SUMMARY
+[FINANCIAL SUMMARY]
   Stock Profit   : ${fmt(totalSalesP)}
   Repair Profit  : ${fmt(totalRepairP)}
   Total Expenses : -${fmt(totalExp)}
@@ -1668,18 +1704,19 @@ ${profile.owner?'  Owner: '+profile.owner+'\n':''}${profile.address?'  '+profile
 ━━━━━━━━━━━━━━━━━━━━━━━
 Generated: ${new Date().toLocaleString()}
 PhoneShop Manager v2.0`;
+  document.getElementById('report-content').textContent=reportText;
   openModal('report');
 }
 
 function shareReceipt(){
   const text=document.getElementById('receipt-content').textContent;
   if(navigator.share){navigator.share({title:'Receipt',text}).catch(()=>{});}
-  else{navigator.clipboard.writeText(text).then(()=>showToast('Copy Copied to clipboard!'));}
+  else{navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard!'));}
 }
 function shareReport(){
   const text=document.getElementById('report-content').textContent;
   if(navigator.share){navigator.share({title:'Business Report',text}).catch(()=>{});}
-  else{navigator.clipboard.writeText(text).then(()=>showToast('Copy Copied to clipboard!'));}
+  else{navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard!'));}
 }
 
 // ══════════════════════════════════════════
@@ -1720,8 +1757,8 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 //  CONFIRM
 // ══════════════════════════════════════════
 let _cb=null;
-function showConfirm(title,msg,cb,icon='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>️',yesLabel='Delete'){
-  document.getElementById('confirm-icon').textContent=icon;
+function showConfirm(title,msg,cb,icon='DEL',yesLabel='Delete'){
+  document.getElementById('confirm-icon').innerHTML=icon;
   document.getElementById('confirm-title').textContent=title;
   document.getElementById('confirm-msg').textContent=msg;
   document.getElementById('confirm-yes-btn').textContent=yesLabel;
@@ -1784,49 +1821,6 @@ if('serviceWorker' in navigator){
 applyTheme();
 checkPin();
 renderDashboard();
-</script>
-<script>
-const iconMap = {
-  "📞": `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.07 21 3 13.93 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/>
-        </svg>`,
-
-  "📱": `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="7" y="2" width="10" height="20" rx="2"/>
-          <circle cx="12" cy="18" r="1"/>
-        </svg>`,
-
-  "☎️": `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.86 19.86 0 0 1 3.08 5.18 2 2 0 0 1 5.06 3h3a2 2 0 0 1 2 1.72c.13.86.33 1.7.59 2.5a2 2 0 0 1-.45 2.11L9.1 10.9a16 16 0 0 0 4 4l1.57-1.1a2 2 0 0 1 2.11-.45c.8.26 1.64.46 2.5.59A2 2 0 0 1 22 16.92z"/>
-        </svg>`
-};
-</script>
-<script>
-function convertIcons(root = document) {
-  const elements = root.querySelectorAll("*");
-
-  elements.forEach(el => {
-    if (el.children.length === 0) {
-      let html = el.innerHTML;
-
-      for (let emoji in iconMap) {
-        html = html.replaceAll(emoji, iconMap[emoji]);
-      }
-
-      el.innerHTML = html;
-    }
-  });
-}
-</script>
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  convertIcons();
-});
-</script>
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  convertIcons();
-});
 </script>
 </body>
 </html>
