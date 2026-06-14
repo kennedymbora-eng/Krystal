@@ -633,6 +633,10 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
       <div class="srow"><div class="srow-l">Storage</div><div class="srow-v" style="font-size:11px;color:var(--tx2)" id="aboutStorage">—</div></div>
       <div class="srow"><div class="srow-l">Records</div><div class="srow-v" style="font-size:11px;color:var(--tx2)" id="aboutRecords">—</div></div>
       <div class="srow">
+        <div class="srow-l">Offline Mode</div>
+        <div class="srow-v" style="font-size:11px" id="aboutOffline">Checking…</div>
+      </div>
+      <div class="srow">
         <div>
           <div class="srow-l">App Updates</div>
           <div class="set-sub" id="updateStatus" style="margin-top:2px">Checks automatically</div>
@@ -872,6 +876,7 @@ let _pendingCSV = [];
 let _pwaPrompt  = null;
 let _swReg = null;
 let _swRefreshing = false;
+let _swAvailable = false;
 
 // ── SEED DATA ─────────────────────────────────────────
 function seed(){
@@ -1175,6 +1180,7 @@ function renderSettings(){
   document.querySelectorAll('.cdot').forEach(d=>d.classList.toggle('active',d.style.background===p.accent));
   try{const kb=Math.round((localStorage.getItem('electropro')||'').length/1024*10)/10;document.getElementById('aboutStorage').textContent=kb+' KB';}catch(e){}
   document.getElementById('aboutRecords').textContent=S.items.length+' items, '+S.sales.length+' sales, '+S.suppliers.length+' suppliers';
+  updateOfflineStatus();
 }
 function saveProfile(){
   const p=S.profile;
@@ -1334,29 +1340,17 @@ function hydrate(){try{const d=JSON.parse(localStorage.getItem('electropro'));if
 
 // ── PWA ───────────────────────────────────────────────
 function initPWA(){
-  // Register service worker — try sw.js first, fall back to inline (single-file deploys)
+  // Register service worker for offline support.
+  // Note: data:/blob: URLs are NOT accepted as SW scripts by browsers
+  // (same restriction that caused the earlier blob: error), so a true
+  // inline fallback isn't possible — sw.js must exist alongside index.html.
   if('serviceWorker' in navigator && location.protocol==='https:'){
     navigator.serviceWorker.register('./sw.js')
-      .then(reg=>{console.log('SW registered (sw.js)');watchForUpdates(reg);})
-      .catch(()=>{
-        // sw.js not found (single-file upload) — register an equivalent inline worker via data: URL
-        const swCode=[
-          "const CACHE='electropro-v2';",
-          "self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html'])));});",
-          "self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>clients.claim()));});",
-          "self.addEventListener('message',e=>{if(e.data==='SKIP_WAITING')self.skipWaiting();});",
-          "self.addEventListener('fetch',e=>{",
-          "  if(!e.request.url.startsWith('https'))return;",
-          "  if(e.request.url.includes('script.google.com')){e.respondWith(fetch(e.request).catch(()=>new Response('{\"ok\":false,\"items\":[]}',{headers:{'Content-Type':'application/json'}})));return;}",
-          "  e.respondWith(caches.open(CACHE).then(cache=>cache.match(e.request).then(cached=>{const live=fetch(e.request).then(res=>{if(res.ok)cache.put(e.request,res.clone());return res;}).catch(()=>cached);return cached||live;})));",
-          "});"
-        ].join('\n');
-        const b64=btoa(unescape(encodeURIComponent(swCode)));
-        navigator.serviceWorker.register('data:application/javascript;base64,'+b64)
-          .then(reg=>{console.log('SW registered (inline)');watchForUpdates(reg);})
-          .catch(e=>console.warn('SW unavailable:',e.message));
+      .then(reg=>{console.log('SW registered (sw.js) — offline enabled');watchForUpdates(reg);_swAvailable=true;updateOfflineStatus();})
+      .catch(e=>{
+        console.warn('sw.js not found — offline mode unavailable. Upload sw.js alongside index.html.',e.message);
+        _swAvailable=false;updateOfflineStatus();
       });
-    // Reload the page once the new SW takes control (after Reload tap)
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
       if(_swRefreshing)return;
       _swRefreshing=true;
@@ -1426,6 +1420,23 @@ function showUpdateBanner(){
   if(st)st.textContent='Update ready — tap Reload below';
 }
 function dismissUpdateBanner(){document.getElementById('updateBanner').classList.remove('show');}
+function updateOfflineStatus(){
+  const el=document.getElementById('aboutOffline');
+  if(!el)return;
+  if(location.protocol!=='https:'){
+    el.textContent='Unavailable (open via hosted link)';
+    el.style.color='var(--tx2)';
+  } else if(_swAvailable && _swReg && _swReg.active){
+    el.textContent='Enabled';
+    el.style.color='var(--gr)';
+  } else if(location.protocol==='https:' && 'serviceWorker' in navigator){
+    el.textContent='Not enabled — sw.js missing';
+    el.style.color='var(--wa)';
+  } else {
+    el.textContent='Not supported';
+    el.style.color='var(--tx2)';
+  }
+}
 function applyUpdate(){
   if(_swReg&&_swReg.waiting){_swReg.waiting.postMessage('SKIP_WAITING');}
   else location.reload();
