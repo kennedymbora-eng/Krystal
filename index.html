@@ -51,6 +51,12 @@ a{color:var(--ac);text-decoration:none;}
 .tb-right{display:flex;align-items:center;gap:8px;}
 .tb-date{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--tx2);white-space:nowrap;}
 .tb-avatar{width:30px;height:30px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r8);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--tx2);position:relative;}
+.sync-dot.online{background:var(--gr);}
+.sync-dot.syncing{background:var(--wa);animation:pulse 1s infinite;}
+.sync-dot.offline{background:var(--re);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.sync-pill{display:flex;align-items:center;gap:5px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--tx2);white-space:nowrap;cursor:pointer;}
 /* Scroll area */
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .page-wrap{padding:12px;padding-bottom:80px;}
@@ -217,6 +223,40 @@ body.light tr:hover td{background:rgba(0,0,0,.025);}
 .sheet-close{background:none;border:none;color:var(--tx2);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;}
 
 /* =============================================
+   LOCK SCREEN & PIN PAD
+   ============================================= */
+.lockscreen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.lockscreen.show{display:flex;}
+.ls-icon{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--ac),var(--ac3));display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.ls-shop{font-size:17px;font-weight:900;margin-bottom:2px;}
+.ls-sub{font-size:12px;color:var(--tx2);margin-bottom:24px;}
+.pin-dots{display:flex;gap:14px;margin-bottom:28px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--bd);transition:all .15s;}
+.pin-dot.filled{background:var(--ac);border-color:var(--ac);}
+.pin-dot.err{border-color:var(--re);background:var(--re);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,64px);gap:14px;}
+.pin-key{width:64px;height:64px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx);font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
+.pin-key:active{background:var(--bd);}
+.pin-key.ghost{background:none;border:none;}
+.pin-key svg{pointer-events:none;}
+.ls-error{color:var(--re);font-size:12px;font-weight:700;margin-top:14px;height:16px;}
+.ls-role{margin-top:18px;font-size:11px;color:var(--tx2);text-align:center;line-height:1.6;}
+.shake{animation:shake .35s;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+.cashier-banner{display:none;background:var(--sf2);border:1px solid var(--wa);border-radius:var(--r8);padding:9px 12px;font-size:12px;font-weight:700;color:var(--wa);align-items:center;gap:8px;margin-bottom:10px;}
+/* Cashier mode restrictions */
+body.cashier-mode .cashier-banner{display:flex;}
+body.cashier-mode #kpiProfitToday{display:none;}
+body.cashier-mode #kpiSalesToday{grid-column:1/-1;}
+body.cashier-mode #dashCatProfitCard{display:none;}
+body.cashier-mode .nav-btn[data-page="stock"],
+body.cashier-mode .nav-btn[data-page="reports"],
+body.cashier-mode .nav-btn[data-page="suppliers"],
+body.cashier-mode .nav-btn[data-page="settings"]{display:none;}
+body.cashier-mode #tbSettingsBtn{display:none;}
+
+
+/* =============================================
    INVOICE (print-white)
    ============================================= */
 .invoice{background:#fff;color:#111;border-radius:10px;padding:16px;font-size:12px;}
@@ -293,8 +333,15 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     </div>
   </div>
   <div class="tb-right">
+    <div class="sync-pill" id="syncPill" style="display:none" onclick="showPage('settings')" title="Cloud sync status">
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncLabel">Sync</span>
+    </div>
     <div class="tb-date" id="tbDate"></div>
-    <div class="tb-avatar" onclick="showPage('settings')">
+    <div class="tb-avatar" id="tbLock" style="display:none" onclick="lockApp()" title="Lock app">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="tb-avatar" onclick="showPage('settings')" id="tbSettingsBtn">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </div>
   </div>
@@ -306,14 +353,18 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
 
 <!-- ─── DASHBOARD ─── -->
 <div id="pg-dashboard" class="page active">
+  <div class="cashier-banner" id="cashierBanner">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Cashier mode — tap the lock icon to switch to Owner
+  </div>
   <div class="grid2" style="margin-bottom:10px">
-    <div class="kpi k-gr">
+    <div class="kpi k-gr" id="kpiSalesToday">
       <div class="kpi-lbl">Sales Today</div>
       <div class="kpi-val" id="k-today">KSh 0</div>
       <div class="kpi-sub" id="k-txn">0 transactions</div>
       <div class="kpi-ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
     </div>
-    <div class="kpi k-am">
+    <div class="kpi k-am" id="kpiProfitToday">
       <div class="kpi-lbl">Profit Today</div>
       <div class="kpi-val" id="k-pft">KSh 0</div>
       <div class="kpi-sub" id="k-mrg">0% margin</div>
@@ -342,7 +393,7 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
       <div class="alert-list" id="dash-alerts"></div>
     </div>
   </div>
-  <div class="card">
+  <div class="card" id="dashCatProfitCard">
     <div class="card-title">Profit by Category</div>
     <div id="dash-catbars"></div>
   </div>
@@ -493,7 +544,7 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
         <div class="fg" style="max-width:90px"><label>Initials</label><input id="s-code" placeholder="EP" maxlength="3" style="text-transform:uppercase;text-align:center"></div>
       </div>
       <div class="frow">
-        <div class="fg"><label>Location</label><input id="s-loc" placeholder="Manyatta, Kisumu"></div>
+        <div class="fg"><label>Location</label><input id="s-loc" placeholder="Manyatta, Embu"></div>
         <div class="fg"><label>Phone</label><input id="s-phone" placeholder="07xx xxx xxx" type="tel"></div>
       </div>
       <div class="frow">
@@ -511,6 +562,90 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
       <div class="frow">
         <div class="fg"><label>Owner Name</label><input id="s-owner" placeholder="Your name"></div>
         <div class="fg"><label>Role</label><input id="s-role" placeholder="Owner / Manager"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="set-sec">
+    <div class="set-sec-title">Security &amp; PIN Lock</div>
+    <div class="card">
+      <div class="set-row">
+        <div>
+          <div class="set-lbl">App Lock</div>
+          <div class="set-sub">Require a PIN to open the app</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="s-applock" onchange="toggleAppLock()"><span class="tslider"></span></label>
+      </div>
+      <div class="set-row">
+        <div>
+          <div class="set-lbl">Owner PIN</div>
+          <div class="set-sub" id="ownerPinStatus">Not set — full access has no lock</div>
+        </div>
+        <button class="btn btn-s btn-xs" onclick="openPinSetup('owner')">Set PIN</button>
+      </div>
+      <div class="set-row">
+        <div>
+          <div class="set-lbl">Cashier PIN</div>
+          <div class="set-sub" id="cashierPinStatus">Not set — no restricted mode</div>
+        </div>
+        <button class="btn btn-s btn-xs" onclick="openPinSetup('cashier')">Set PIN</button>
+      </div>
+      <div class="set-row">
+        <div>
+          <div class="set-lbl">Auto-lock</div>
+          <div class="set-sub">Lock automatically when idle</div>
+        </div>
+        <select id="s-autolock" onchange="saveAutoLock()" style="width:110px">
+          <option value="0">Never</option>
+          <option value="1">1 minute</option>
+          <option value="5">5 minutes</option>
+          <option value="15">15 minutes</option>
+          <option value="30">30 minutes</option>
+        </select>
+      </div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.6;margin-top:8px;padding:10px;background:var(--sf2);border-radius:var(--r8)">
+        <strong style="color:var(--tx)">Cashier PIN</strong> opens a restricted view: Point of Sale only, with cost prices and profit figures hidden. Useful for shop attendants. Owner PIN unlocks everything, including this Settings page.
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Sync -->
+  <div class="set-sec">
+    <div class="set-sec-title">Cloud Sync — Multi-Phone</div>
+    <div class="card">
+      <div id="cloudNotConfigured">
+        <div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:12px">
+          Connect a free Firebase project so this phone and your cashier's phone share the same live stock, sales, and suppliers. Changes on one phone appear on the other within seconds, and everything keeps working offline — it syncs automatically once back online.
+        </div>
+        <button class="btn btn-p btn-full" onclick="openModal('cloudSetupModal')">Set Up Cloud Sync</button>
+      </div>
+      <div id="cloudConfigured" style="display:none">
+        <div class="set-row">
+          <div>
+            <div class="set-lbl">Status</div>
+            <div class="set-sub" id="cloudStatusText">Not connected</div>
+          </div>
+          <span class="sync-dot" id="cloudStatusDot"></span>
+        </div>
+        <div class="set-row">
+          <div>
+            <div class="set-lbl">Shop Code</div>
+            <div class="set-sub">Share this with the cashier's phone</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <code id="cloudCodeDisplay" style="font-size:13px">—</code>
+            <button class="btn btn-s btn-xs" onclick="copyShopCode()">Copy</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-lbl">Sync Enabled</div>
+          <label class="toggle"><input type="checkbox" id="s-cloud-enabled" onchange="toggleCloudSync()"><span class="tslider"></span></label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-s btn-sm" style="flex:1" onclick="openModal('cloudSetupModal')">Edit Connection</button>
+          <button class="btn btn-d btn-sm" style="flex:1" onclick="disconnectCloud()">Disconnect</button>
+        </div>
       </div>
     </div>
   </div>
@@ -646,7 +781,7 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     </div>
   </div>
 
-  <div style="text-align:center;padding:8px 0 20px;color:var(--tx2);font-size:11px">Made for electronics wholesale · Manyatta, Kisumu 🇰🇪</div>
+  <div style="text-align:center;padding:8px 0 20px;color:var(--tx2);font-size:11px">Made for electronics wholesale · Manyatta, Embu 🇰🇪</div>
 </div>
 
 </div><!-- /page-wrap -->
@@ -835,6 +970,141 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
   </div>
 </div>
 
+<!-- Lock Screen -->
+<div class="lockscreen" id="lockScreen">
+  <div class="ls-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#071a15" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  </div>
+  <div class="ls-shop" id="lsShopName">ElectroPro</div>
+  <div class="ls-sub">Enter PIN to unlock</div>
+  <div class="pin-dots" id="lsDots">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-pad" id="lsPad">
+    <button class="pin-key" onclick="lsPress('1')">1</button>
+    <button class="pin-key" onclick="lsPress('2')">2</button>
+    <button class="pin-key" onclick="lsPress('3')">3</button>
+    <button class="pin-key" onclick="lsPress('4')">4</button>
+    <button class="pin-key" onclick="lsPress('5')">5</button>
+    <button class="pin-key" onclick="lsPress('6')">6</button>
+    <button class="pin-key" onclick="lsPress('7')">7</button>
+    <button class="pin-key" onclick="lsPress('8')">8</button>
+    <button class="pin-key" onclick="lsPress('9')">9</button>
+    <button class="pin-key ghost"></button>
+    <button class="pin-key" onclick="lsPress('0')">0</button>
+    <button class="pin-key" onclick="lsBackspace()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+    </button>
+  </div>
+  <div class="ls-error" id="lsError"></div>
+  <div class="ls-role" id="lsRole"></div>
+</div>
+
+<!-- PIN Setup Modal -->
+<div class="overlay" id="pinSetupModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title" id="pinSetupTitle">Set Owner PIN</div><button class="sheet-close" onclick="closeModal('pinSetupModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div id="pinSetupCurrentWrap" class="fg" style="margin-bottom:10px;display:none">
+      <label>Current PIN</label>
+      <input type="password" id="ps-current" inputmode="numeric" maxlength="4" placeholder="••••">
+    </div>
+    <div class="frow">
+      <div class="fg"><label>New 4-digit PIN</label><input type="password" id="ps-new" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      <div class="fg"><label>Confirm PIN</label><input type="password" id="ps-confirm" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+    </div>
+    <div id="pinSetupErr" style="color:var(--re);font-size:11px;margin-bottom:8px;min-height:14px"></div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-top:4px">
+      <button class="btn btn-d btn-sm" id="pinRemoveBtn" style="display:none" onclick="removePin()">Remove PIN</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-s" onclick="closeModal('pinSetupModal')">Cancel</button>
+      <button class="btn btn-p" onclick="savePinSetup()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic PIN Prompt (for destructive actions) -->
+<div class="overlay" id="pinPromptModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title">Owner PIN Required</div><button class="sheet-close" onclick="closeModal('pinPromptModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div id="pinPromptMsg" style="font-size:12px;color:var(--tx2);margin-bottom:12px">This action needs the Owner PIN.</div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Enter PIN</label>
+      <input type="password" id="pp-pin" inputmode="numeric" maxlength="4" placeholder="••••">
+    </div>
+    <div id="pinPromptErr" style="color:var(--re);font-size:11px;margin-bottom:8px;min-height:14px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-s" onclick="closeModal('pinPromptModal')">Cancel</button>
+      <button class="btn btn-d" onclick="confirmPinPrompt()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cloud Sync Setup Modal -->
+<div class="overlay" id="cloudSetupModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title">Cloud Sync Setup</div><button class="sheet-close" onclick="closeModal('cloudSetupModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="cloudGuideTab('connect',this)">Connect</button>
+      <button class="tab" onclick="cloudGuideTab('guide',this)">Setup Guide</button>
+    </div>
+
+    <!-- Connect tab -->
+    <div id="cg-connect">
+      <div style="font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:12px">
+        Paste your Firebase config below (see the Setup Guide tab if you haven't created one yet), then choose whether this phone starts a new shop or joins an existing one.
+      </div>
+      <div class="fg" style="margin-bottom:10px">
+        <label>Firebase Config (JSON)</label>
+        <textarea id="cs-config" rows="5" style="font-family:monospace;font-size:10px;resize:vertical" placeholder='{"apiKey":"...","projectId":"...","appId":"..."}'></textarea>
+      </div>
+
+      <div class="tabs" style="margin-bottom:10px">
+        <button class="tab active" onclick="cloudModeTab('new',this)">Start New Shop</button>
+        <button class="tab" onclick="cloudModeTab('join',this)">Join Existing Shop</button>
+      </div>
+
+      <div id="cm-new">
+        <div style="font-size:11px;color:var(--tx2);margin-bottom:10px">This phone becomes the main copy. A unique Shop Code will be generated — share it with the cashier's phone afterward.</div>
+      </div>
+      <div id="cm-join" style="display:none">
+        <div class="fg" style="margin-bottom:10px">
+          <label>Shop Code from Owner's Phone</label>
+          <input id="cs-joincode" placeholder="e.g. EP-7K2M9">
+        </div>
+        <div style="font-size:11px;color:var(--tx2);margin-bottom:10px">This phone will pull the existing stock, sales, and suppliers from the cloud and start syncing immediately. Local data on this phone will be replaced.</div>
+      </div>
+
+      <div id="cloudConnectErr" style="color:var(--re);font-size:11px;margin-bottom:8px;min-height:14px"></div>
+      <button class="btn btn-p btn-full" onclick="connectCloud()" id="cloudConnectBtn">Connect</button>
+    </div>
+
+    <!-- Guide tab -->
+    <div id="cg-guide" style="display:none;font-size:12px;line-height:1.7;color:var(--tx2)">
+      <div style="color:var(--tx);font-weight:700;margin-bottom:8px">Free Firebase project — about 5 minutes, one-time setup</div>
+      <div class="gs"><span class="gn">1</span><span>Go to <strong>console.firebase.google.com</strong> and sign in with any Google account.</span></div>
+      <div class="gs"><span class="gn">2</span><span>Click <strong>Add project</strong>, give it any name (e.g. "electropro-shop"), and finish creation. Disable Google Analytics if asked — not needed.</span></div>
+      <div class="gs"><span class="gn">3</span><span>In the left menu, click <strong>Build → Firestore Database → Create database</strong>. Choose <strong>Start in test mode</strong> and pick the location closest to you.</span></div>
+      <div class="gs"><span class="gn">4</span><span>Click the gear icon (top left) → <strong>Project settings</strong>. Scroll to "Your apps" and click the <strong>&lt;/&gt; (Web)</strong> icon to register a web app. Give it any nickname.</span></div>
+      <div class="gs"><span class="gn">5</span><span>Firebase shows a code block with <code>firebaseConfig = {"{...}"}</code>. Copy everything inside the curly braces (including the braces) and paste it into the <strong>Firebase Config</strong> field on the Connect tab.</span></div>
+      <div class="gs"><span class="gn">6</span><span>Back here: tap <strong>Start New Shop</strong>, then <strong>Connect</strong>. You'll get a Shop Code.</span></div>
+      <div class="gs"><span class="gn">7</span><span>On the cashier's phone: open the same app link, go to Settings → Cloud Sync → Set Up, paste the <strong>same Firebase Config</strong>, choose <strong>Join Existing Shop</strong>, and enter the Shop Code.</span></div>
+
+      <div style="margin-top:10px;padding:10px;background:var(--sf2);border-radius:var(--r8);border-left:3px solid var(--wa)">
+        <strong>Security note:</strong> "Test mode" allows open read/write for 30 days, which is fine to get started. For longer-term use, Firestore security rules can be tightened later — ask if you want help with that when the time comes.
+      </div>
+      <div style="margin-top:8px;padding:10px;background:var(--sf2);border-radius:var(--r8);border-left:3px solid var(--ac)">
+        <strong>Free tier</strong> covers roughly 50,000 reads and 20,000 writes per day — far more than a small shop needs.
+      </div>
+    </div>
+
+    <button class="btn btn-s btn-full" style="margin-top:14px" onclick="closeModal('cloudSetupModal')">Close</button>
+  </div>
+</div>
+
 <!-- Install banner -->
 <div class="install-banner" id="installBanner">
   <div style="flex:1"><div style="font-size:13px;font-weight:700">Install ElectroPro</div><div style="font-size:10px;color:var(--tx2)">Add to home screen for offline use</div></div>
@@ -860,18 +1130,22 @@ const S = {
   items:[], sales:[], suppliers:[], cart:[],
   editItem:null, editSup:null, restockId:null,
   stockCat:'All', posCat:'All',
+  session:{role:'owner', unlocked:true}, // 'owner' | 'cashier'
   profile:{
     shopName:'ElectroPro', code:'EP',
-    location:'Manyatta, Kisumu',
+    location:'Manyatta, Embu',
     phone:'', mpesa:'', email:'',
     tag:'Quality Electronics at Wholesale Prices',
     owner:'', role:'Owner',
     light:false, accent:'#00d4aa',
     invMpesa:true, invPhone:true,
     invFooter:'Thank you for your business!',
-    reorder:10, deadDays:30, sheetsUrl:''
+    reorder:10, deadDays:30, sheetsUrl:'',
+    ownerPin:'', cashierPin:'', appLock:false, autoLockMin:5,
+    cloudConfig:'', cloudShopCode:'', cloudEnabled:false
   }
 };
+window.AppState = S; // exposed so the cloud-sync module can read local data for initial seeding
 let _pendingCSV = [];
 let _pwaPrompt  = null;
 let _swReg = null;
@@ -927,6 +1201,11 @@ function ago(n){const d=new Date();d.setHours(12,0,0,0);return d.getTime()-n*864
 
 // ── NAVIGATION ────────────────────────────────────────
 function showPage(id){
+  // Hard guard: cashier role can only ever see the Sales page,
+  // regardless of which UI element triggered navigation.
+  if(S.session.role==='cashier' && ['stock','reports','suppliers','settings'].includes(id)){
+    id='sales';
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('pg-'+id).classList.add('active');
@@ -961,7 +1240,8 @@ function renderDash(){
   document.getElementById('k-alerts').textContent=alts.length;
   // Recent
   const re=document.getElementById('dash-recent');
-  re.innerHTML=ts.length?ts.slice().reverse().slice(0,5).map(s=>`<div class="srow"><div><div style="font-weight:700;font-size:12px">${s.customer}</div><div style="font-size:10px;color:var(--tx2)">${s.items.map(i=>i.name).join(', ')}</div></div><div style="text-align:right"><div style="color:var(--ac);font-weight:800">KSh ${fmt(s.total)}</div><div style="font-size:10px;color:var(--gr)">+${fmt(s.profit)}</div></div></div>`).join(''):'<div class="empty"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div style="font-size:12px">No sales today</div></div>';
+  const showPft=S.session.role!=='cashier';
+  re.innerHTML=ts.length?ts.slice().reverse().slice(0,5).map(s=>`<div class="srow"><div><div style="font-weight:700;font-size:12px">${s.customer}</div><div style="font-size:10px;color:var(--tx2)">${s.items.map(i=>i.name).join(', ')}</div></div><div style="text-align:right"><div style="color:var(--ac);font-weight:800">KSh ${fmt(s.total)}</div>${showPft?`<div style="font-size:10px;color:var(--gr)">+${fmt(s.profit)}</div>`:''}</div></div>`).join(''):'<div class="empty"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div style="font-size:12px">No sales today</div></div>';
   // Alerts
   const ae=document.getElementById('dash-alerts');
   ae.innerHTML=alts.length?alts.slice(0,6).map(i=>`<div class="alert-row${i.stock?' warn':''}"><div class="alert-dot"></div><div><div class="a-name">${i.name}</div><div class="a-detail">${i.cat} · min ${i.reorder}</div></div><div class="a-badge">${i.stock?'Low: '+i.stock:'OUT'}</div></div>`).join(''):'<div class="empty"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg><div style="font-size:12px">All stock OK</div></div>';
@@ -1079,11 +1359,21 @@ function completeSale(){
   if(!S.cart.length){toast('Cart is empty');return;}
   const customer=document.getElementById('custName').value.trim()||'Walk-in';
   const items=S.cart.map(c=>({...c}));
-  const sale={id:'sl'+Date.now(),ts:Date.now(),customer,items,total:items.reduce((a,b)=>a+b.price*b.qty,0),profit:items.reduce((a,b)=>a+(b.price-b.cost)*b.qty,0)};
+  const sale={id:'sl'+Date.now()+Math.random().toString(36).slice(2,7),ts:Date.now(),customer,items,total:items.reduce((a,b)=>a+b.price*b.qty,0),profit:items.reduce((a,b)=>a+(b.price-b.cost)*b.qty,0)};
   S.sales.push(sale);
   items.forEach(c=>{const it=S.items.find(i=>i.id===c.itemId);if(it){it.stock-=c.qty;it.lastSold=Date.now();}});
   S.cart=[];document.getElementById('custName').value='';
-  renderCart();renderPOS();renderHist();persist();
+  renderCart();renderPOS();renderHist();
+  // When cloud sync is on, stock decrements go through a server-side atomic
+  // increment (so two phones selling the same item at once can't overwrite
+  // each other) and the sale is written as its own document. Falls back to
+  // normal local persist if sync isn't configured or is briefly offline.
+  if(typeof cloudRecordSale==='function' && S.profile.cloudEnabled){
+    cloudRecordSale(sale, items);
+    persistLocalOnly();
+  } else {
+    persist();
+  }
   showInvoice(sale);toast('Sale recorded — KSh '+fmt(sale.total));
 }
 function toggleHistory(){
@@ -1178,9 +1468,14 @@ function renderSettings(){
   document.getElementById('s-dead').value=p.deadDays||30;
   document.getElementById('s-sheets').value=p.sheetsUrl||'';
   document.querySelectorAll('.cdot').forEach(d=>d.classList.toggle('active',d.style.background===p.accent));
+  document.getElementById('s-applock').checked=!!p.appLock;
+  document.getElementById('s-autolock').value=String(p.autoLockMin!=null?p.autoLockMin:5);
+  document.getElementById('ownerPinStatus').textContent=p.ownerPin?'PIN set':'Not set — full access has no lock';
+  document.getElementById('cashierPinStatus').textContent=p.cashierPin?'PIN set':'Not set — no restricted mode';
   try{const kb=Math.round((localStorage.getItem('electropro')||'').length/1024*10)/10;document.getElementById('aboutStorage').textContent=kb+' KB';}catch(e){}
   document.getElementById('aboutRecords').textContent=S.items.length+' items, '+S.sales.length+' sales, '+S.suppliers.length+' suppliers';
   updateOfflineStatus();
+  initCloudSyncUI();
 }
 function saveProfile(){
   const p=S.profile;
@@ -1243,8 +1538,18 @@ function importBackup(e){
   r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!d.items&&!d.sales){toast('Invalid backup');return;}if(!confirm('Restore from '+f.name+'?\nThis replaces current data.'))return;S.items=d.items||[];S.sales=d.sales||[];S.suppliers=d.suppliers||[];if(d.profile)S.profile=Object.assign({},S.profile,d.profile);persist();applyProfile();if(S.profile.light)document.body.classList.add('light');if(S.profile.accent)document.documentElement.style.setProperty('--ac',S.profile.accent);renderSettings();toast('Restored');}catch(err){toast('Failed to read file');}};
   r.readAsText(f);e.target.value='';
 }
-function resetDemo(){if(!confirm('Reset to demo data?'))return;S.items=[];S.sales=[];S.suppliers=[];seed();persist();renderSettings();toast('Demo data loaded');}
-function clearAll(){if(!confirm('Delete ALL data?\nThis cannot be undone.'))return;S.items=[];S.sales=[];S.suppliers=[];persist();renderSettings();toast('Cleared');}
+function resetDemo(){
+  requireOwnerPin('Resetting to demo data will replace your current stock, sales and suppliers.',()=>{
+    if(!confirm('Reset to demo data?'))return;
+    S.items=[];S.sales=[];S.suppliers=[];seed();persist();renderSettings();toast('Demo data loaded');
+  });
+}
+function clearAll(){
+  requireOwnerPin('This will permanently delete ALL stock, sales and suppliers.',()=>{
+    if(!confirm('Delete ALL data?\nThis cannot be undone.'))return;
+    S.items=[];S.sales=[];S.suppliers=[];persist();renderSettings();toast('Cleared');
+  });
+}
 
 // ── SHARE APP ─────────────────────────────────────────
 function shareApp(){
@@ -1335,7 +1640,13 @@ function fmtDate(ts){const d=new Date(ts);return d.toLocaleDateString('en-GB',{d
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 
 // ── PERSISTENCE ───────────────────────────────────────
-function persist(){try{localStorage.setItem('electropro',JSON.stringify({items:S.items,sales:S.sales,suppliers:S.suppliers,profile:S.profile}));}catch(e){}}
+function persist(){
+  try{localStorage.setItem('electropro',JSON.stringify({items:S.items,sales:S.sales,suppliers:S.suppliers,profile:S.profile}));}catch(e){}
+  if(typeof cloudOnLocalChange==='function')cloudOnLocalChange();
+}
+function persistLocalOnly(){
+  try{localStorage.setItem('electropro',JSON.stringify({items:S.items,sales:S.sales,suppliers:S.suppliers,profile:S.profile}));}catch(e){}
+}
 function hydrate(){try{const d=JSON.parse(localStorage.getItem('electropro'));if(d){S.items=d.items||[];S.sales=d.sales||[];S.suppliers=d.suppliers||[];if(d.profile)S.profile=Object.assign({},S.profile,d.profile);return true;}}catch(e){}return false;}
 
 // ── PWA ───────────────────────────────────────────────
@@ -1475,6 +1786,534 @@ function makeIcon(size,text,color){
   }catch(e){return '';}
 }
 
+// ── CLOUD SYNC (Firebase Firestore) ───────────────────
+// Architecture:
+//  - Each "shop" is one Firestore document tree under shops/{shopCode}.
+//  - items/{itemId} and suppliers/{supId}: last-write-wins, fine for
+//    catalogue data that one person edits at a time.
+//  - sales/{saleId}: append-only — every sale gets a unique id, so two
+//    phones can write sales simultaneously with zero risk of collision.
+//  - Stock decrements use Firestore's atomic increment(-qty) operation,
+//    which is resolved server-side. If two phones sell the last unit of
+//    the same item at the same moment, Firestore serialises the two
+//    increments correctly instead of one overwriting the other — this
+//    is the core problem a plain "last write wins" sync can't solve.
+//  - Firestore's SDK queues writes locally when offline and flushes them
+//    automatically on reconnect, and onSnapshot() listeners give near
+//    real-time updates (typically under a second) to every other phone
+//    once back online.
+let _fbApp=null, _fbDb=null, _fbReady=false, _fbUnsubs=[];
+let _cloudHydrating=false;
+let _cloudWriteQueueTimer=null;
+
+function cloudGuideTab(id,btn){
+  document.getElementById('cg-connect').style.display=id==='connect'?'block':'none';
+  document.getElementById('cg-guide').style.display=id==='guide'?'block':'none';
+  document.querySelectorAll('#cloudSetupModal .tabs')[0].querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn?.classList.add('active');
+}
+let _cloudMode='new';
+function cloudModeTab(mode,btn){
+  _cloudMode=mode;
+  document.getElementById('cm-new').style.display=mode==='new'?'block':'none';
+  document.getElementById('cm-join').style.display=mode==='join'?'block':'none';
+  document.querySelectorAll('#cloudSetupModal .tabs')[1].querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn?.classList.add('active');
+  document.getElementById('cloudConnectBtn').textContent=mode==='new'?'Create Shop & Connect':'Join Shop';
+}
+
+function loadFirebaseSDK(){
+  // Loads the Firebase compat SDK from Google's CDN once, on demand —
+  // never loaded at all unless the shop owner actually sets up sync.
+  if(window.firebase) return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const s1=document.createElement('script');
+    s1.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+    s1.onload=()=>{
+      const s2=document.createElement('script');
+      s2.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+      s2.onload=()=>resolve();
+      s2.onerror=()=>reject(new Error('Could not load Firestore SDK'));
+      document.head.appendChild(s2);
+    };
+    s1.onerror=()=>reject(new Error('Could not load Firebase SDK — check internet connection'));
+    document.head.appendChild(s1);
+  });
+}
+
+function genShopCode(prefix){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<5;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  return (prefix||'SHOP')+'-'+code;
+}
+
+async function connectCloud(){
+  const errEl=document.getElementById('cloudConnectErr');
+  errEl.textContent='';
+  let cfg;
+  try{
+    cfg=JSON.parse(document.getElementById('cs-config').value.trim());
+    if(!cfg.apiKey||!cfg.projectId){throw new Error('missing fields');}
+  }catch(e){
+    errEl.textContent='Invalid Firebase config — paste the full JSON object from your Firebase project settings.';
+    return;
+  }
+  const btn=document.getElementById('cloudConnectBtn');
+  btn.textContent='Connecting…';
+
+  try{
+    await loadFirebaseSDK();
+    // Tear down any previous connection before reconnecting
+    cloudTeardown();
+    _fbApp=firebase.initializeApp(cfg, 'electropro-'+Date.now());
+    _fbDb=_fbApp.firestore();
+    try{ await _fbDb.enablePersistence({synchronizeTabs:true}); }catch(e){ /* fine if unsupported / already enabled elsewhere */ }
+
+    if(_cloudMode==='new'){
+      const code=genShopCode(S.profile.code||'SHOP');
+      await seedCloudShop(code);
+      S.profile.cloudConfig=document.getElementById('cs-config').value.trim();
+      S.profile.cloudShopCode=code;
+      S.profile.cloudEnabled=true;
+      persistLocalOnly();
+      toast('Shop created — Shop Code: '+code);
+    } else {
+      const code=document.getElementById('cs-joincode').value.trim().toUpperCase();
+      if(!code){errEl.textContent='Enter the Shop Code from the owner\'s phone.';btn.textContent='Join Shop';return;}
+      const snap=await _fbDb.collection('shops').doc(code).get();
+      if(!snap.exists){errEl.textContent='Shop Code not found. Double-check it with the owner.';btn.textContent='Join Shop';return;}
+      if(!confirm('Join this shop? Your local stock, sales and suppliers on this phone will be replaced with the shared cloud data.')){btn.textContent='Join Shop';return;}
+      S.profile.cloudConfig=document.getElementById('cs-config').value.trim();
+      S.profile.cloudShopCode=code;
+      S.profile.cloudEnabled=true;
+      persistLocalOnly();
+      await pullInitialCloudData(code);
+      toast('Joined shop '+code);
+    }
+    startCloudListeners();
+    closeModal('cloudSetupModal');
+    renderSettings();
+  }catch(e){
+    console.error(e);
+    errEl.textContent='Connection failed: '+(e.message||'check your config and internet connection');
+  }finally{
+    btn.textContent=_cloudMode==='new'?'Create Shop & Connect':'Join Shop';
+  }
+}
+
+async function seedCloudShop(code){
+  const shopRef=_fbDb.collection('shops').doc(code);
+  await shopRef.set({createdAt:Date.now(),shopName:S.profile.shopName||'ElectroPro'});
+  const batch=_fbDb.batch();
+  S.items.forEach(it=>batch.set(shopRef.collection('items').doc(it.id), it));
+  S.suppliers.forEach(sp=>batch.set(shopRef.collection('suppliers').doc(sp.id), sp));
+  S.sales.forEach(sl=>batch.set(shopRef.collection('sales').doc(sl.id), sl));
+  await batch.commit();
+}
+
+async function pullInitialCloudData(code){
+  _cloudHydrating=true;
+  const shopRef=_fbDb.collection('shops').doc(code);
+  const [itemsSnap,supSnap,salesSnap]=await Promise.all([
+    shopRef.collection('items').get(),
+    shopRef.collection('suppliers').get(),
+    shopRef.collection('sales').get()
+  ]);
+  S.items=itemsSnap.docs.map(d=>d.data());
+  S.suppliers=supSnap.docs.map(d=>d.data());
+  S.sales=salesSnap.docs.map(d=>d.data());
+  persistLocalOnly();
+  _cloudHydrating=false;
+}
+
+function startCloudListeners(){
+  if(!_fbDb||!S.profile.cloudShopCode)return;
+  const shopRef=_fbDb.collection('shops').doc(S.profile.cloudShopCode);
+
+  _fbUnsubs.push(shopRef.collection('items').onSnapshot(snap=>{
+    if(_cloudHydrating)return;
+    snap.docChanges().forEach(ch=>{
+      const data=ch.doc.data();
+      const idx=S.items.findIndex(i=>i.id===data.id);
+      if(ch.type==='removed'){ if(idx>-1)S.items.splice(idx,1); }
+      else if(idx>-1) S.items[idx]=data;
+      else S.items.push(data);
+    });
+    persistLocalOnly();
+    refreshCurrentPage();
+    flashSyncDot('online');
+  },err=>{console.warn('items listener:',err.message);flashSyncDot('offline');}));
+
+  _fbUnsubs.push(shopRef.collection('suppliers').onSnapshot(snap=>{
+    if(_cloudHydrating)return;
+    snap.docChanges().forEach(ch=>{
+      const data=ch.doc.data();
+      const idx=S.suppliers.findIndex(s=>s.id===data.id);
+      if(ch.type==='removed'){ if(idx>-1)S.suppliers.splice(idx,1); }
+      else if(idx>-1) S.suppliers[idx]=data;
+      else S.suppliers.push(data);
+    });
+    persistLocalOnly();
+    refreshCurrentPage();
+  },err=>console.warn('suppliers listener:',err.message)));
+
+  _fbUnsubs.push(shopRef.collection('sales').onSnapshot(snap=>{
+    if(_cloudHydrating)return;
+    snap.docChanges().forEach(ch=>{
+      const data=ch.doc.data();
+      if(!S.sales.find(s=>s.id===data.id)) S.sales.push(data);
+    });
+    persistLocalOnly();
+    refreshCurrentPage();
+  },err=>console.warn('sales listener:',err.message)));
+
+  updateCloudStatusUI('online');
+}
+
+function cloudTeardown(){
+  _fbUnsubs.forEach(u=>{try{u();}catch(e){}});
+  _fbUnsubs=[];
+  _fbDb=null;_fbApp=null;
+}
+
+function refreshCurrentPage(){
+  const active=document.querySelector('.page.active');
+  if(!active)return;
+  const id=active.id.replace('pg-','');
+  ({dashboard:renderDash,stock:renderStock,sales:()=>{renderPOS();renderHist();},reports:renderReports,suppliers:renderSuppliers,settings:renderSettings})[id]?.();
+}
+
+// Called from completeSale() — writes the sale as its own document and
+// decrements stock atomically on the server so concurrent sales from two
+// phones can never overwrite each other's stock count.
+function cloudRecordSale(sale, items){
+  if(!_fbDb||!S.profile.cloudShopCode)return;
+  const shopRef=_fbDb.collection('shops').doc(S.profile.cloudShopCode);
+  const batch=_fbDb.batch();
+  batch.set(shopRef.collection('sales').doc(sale.id), sale);
+  items.forEach(c=>{
+    const itemRef=shopRef.collection('items').doc(c.itemId);
+    batch.update(itemRef, {
+      stock: firebase.firestore.FieldValue.increment(-c.qty),
+      lastSold: Date.now()
+    });
+  });
+  batch.commit().catch(e=>console.warn('cloudRecordSale failed (queued offline if no connection):',e.message));
+}
+
+// Generic catch-all: any other local change (item add/edit, restock,
+// supplier add/edit, settings change) gets pushed up too. Debounced so
+// rapid edits don't spam Firestore with a write per keystroke.
+function cloudOnLocalChange(){
+  if(!S.profile.cloudEnabled || !_fbDb || _cloudHydrating)return;
+  if(_cloudWriteQueueTimer)clearTimeout(_cloudWriteQueueTimer);
+  _cloudWriteQueueTimer=setTimeout(pushFullCatalogue, 600);
+}
+async function pushFullCatalogue(){
+  if(!_fbDb||!S.profile.cloudShopCode)return;
+  try{
+    const shopRef=_fbDb.collection('shops').doc(S.profile.cloudShopCode);
+    const batch=_fbDb.batch();
+    S.items.forEach(it=>batch.set(shopRef.collection('items').doc(it.id), it));
+    S.suppliers.forEach(sp=>batch.set(shopRef.collection('suppliers').doc(sp.id), sp));
+    await batch.commit();
+    flashSyncDot('online');
+  }catch(e){
+    console.warn('Cloud push failed (will retry on next change / reconnect):',e.message);
+    flashSyncDot('offline');
+  }
+}
+
+function toggleCloudSync(){
+  S.profile.cloudEnabled=document.getElementById('s-cloud-enabled').checked;
+  persistLocalOnly();
+  if(S.profile.cloudEnabled){
+    initCloudFromSavedConfig();
+    toast('Cloud sync enabled');
+  } else {
+    cloudTeardown();
+    updateCloudStatusUI('offline');
+    toast('Cloud sync paused on this phone');
+  }
+}
+
+function disconnectCloud(){
+  if(!confirm('Disconnect this phone from cloud sync?\nLocal data stays on this phone, but it will stop syncing.'))return;
+  cloudTeardown();
+  S.profile.cloudConfig='';S.profile.cloudShopCode='';S.profile.cloudEnabled=false;
+  persistLocalOnly();
+  renderSettings();
+  toast('Disconnected from cloud sync');
+}
+
+function copyShopCode(){
+  const code=S.profile.cloudShopCode;
+  if(!code)return;
+  navigator.clipboard?.writeText(code).then(()=>toast('Shop code copied')).catch(()=>toast('Code: '+code));
+}
+
+function updateCloudStatusUI(state){
+  const pill=document.getElementById('syncPill');
+  const dot=document.getElementById('syncDot');
+  const label=document.getElementById('syncLabel');
+  const statusDot=document.getElementById('cloudStatusDot');
+  const statusText=document.getElementById('cloudStatusText');
+  if(!S.profile.cloudShopCode){
+    if(pill)pill.style.display='none';
+    return;
+  }
+  if(pill)pill.style.display='flex';
+  const map={online:['online','Synced'],syncing:['syncing','Syncing…'],offline:['offline','Offline']};
+  const [cls,text]=map[state]||map.offline;
+  if(dot){dot.className='sync-dot '+cls;}
+  if(label)label.textContent=text;
+  if(statusDot)statusDot.className='sync-dot '+cls;
+  if(statusText)statusText.textContent=S.profile.cloudEnabled?text:'Sync paused on this phone';
+}
+function flashSyncDot(state){
+  updateCloudStatusUI('syncing');
+  setTimeout(()=>updateCloudStatusUI(navigator.onLine?state:'offline'), 500);
+}
+
+async function initCloudFromSavedConfig(){
+  if(!S.profile.cloudConfig||!S.profile.cloudShopCode)return;
+  try{
+    await loadFirebaseSDK();
+    let cfg;
+    try{cfg=JSON.parse(S.profile.cloudConfig);}catch(e){console.warn('Saved cloud config is invalid');return;}
+    cloudTeardown();
+    _fbApp=firebase.initializeApp(cfg, 'electropro-'+Date.now());
+    _fbDb=_fbApp.firestore();
+    try{ await _fbDb.enablePersistence({synchronizeTabs:true}); }catch(e){}
+    startCloudListeners();
+  }catch(e){
+    console.warn('Cloud reconnect failed:',e.message);
+    updateCloudStatusUI('offline');
+  }
+}
+
+function initCloudSyncUI(){
+  const has=!!S.profile.cloudShopCode;
+  document.getElementById('cloudNotConfigured').style.display=has?'none':'block';
+  document.getElementById('cloudConfigured').style.display=has?'block':'none';
+  if(has){
+    document.getElementById('cloudCodeDisplay').textContent=S.profile.cloudShopCode;
+    document.getElementById('s-cloud-enabled').checked=!!S.profile.cloudEnabled;
+    updateCloudStatusUI(S.profile.cloudEnabled?'syncing':'offline');
+  }
+}
+
+window.addEventListener('online', ()=>{ if(S.profile.cloudEnabled){ updateCloudStatusUI('syncing'); pushFullCatalogue(); } });
+window.addEventListener('offline', ()=>{ if(S.profile.cloudShopCode) updateCloudStatusUI('offline'); });
+
+// ── SECURITY / PIN LOCK ───────────────────────────────
+let _lsBuffer='';
+let _idleTimer=null;
+let _pinSetupType='owner';
+let _pinPromptCallback=null;
+
+function simpleHash(str){
+  let h=5381;
+  for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i);h|=0;}
+  return 'h'+(h>>>0).toString(36);
+}
+
+function initSecurity(){
+  if(S.profile.appLock && S.profile.ownerPin){
+    S.session.unlocked=false;
+    showLockScreen();
+  } else {
+    S.session.unlocked=true;
+    S.session.role='owner';
+    document.body.classList.remove('cashier-mode');
+  }
+  setupActivityTracking();
+  updateLockButtonVisibility();
+}
+
+// ── Lock screen ──
+function showLockScreen(){
+  document.getElementById('lsShopName').textContent=S.profile.shopName||'ElectroPro';
+  _lsBuffer='';
+  updateLsDots();
+  document.getElementById('lsError').textContent='';
+  const roleHint=document.getElementById('lsRole');
+  roleHint.textContent=S.profile.cashierPin
+    ? 'Owner PIN unlocks full access · Cashier PIN unlocks Sales only'
+    : '';
+  document.getElementById('lockScreen').classList.add('show');
+}
+function updateLsDots(){
+  document.querySelectorAll('#lsDots .pin-dot').forEach((d,i)=>{
+    d.classList.toggle('filled',i<_lsBuffer.length);
+    d.classList.remove('err');
+  });
+}
+function lsPress(d){
+  if(_lsBuffer.length>=4)return;
+  _lsBuffer+=d;
+  updateLsDots();
+  if(_lsBuffer.length===4)setTimeout(tryUnlock,120);
+}
+function lsBackspace(){
+  _lsBuffer=_lsBuffer.slice(0,-1);
+  updateLsDots();
+  document.getElementById('lsError').textContent='';
+}
+function tryUnlock(){
+  const h=simpleHash(_lsBuffer);
+  if(S.profile.ownerPin && h===S.profile.ownerPin){
+    unlockApp('owner');
+  } else if(S.profile.cashierPin && h===S.profile.cashierPin){
+    unlockApp('cashier');
+  } else {
+    document.querySelectorAll('#lsDots .pin-dot').forEach(d=>d.classList.add('err'));
+    document.getElementById('lsDots').classList.add('shake');
+    document.getElementById('lsError').textContent='Incorrect PIN';
+    setTimeout(()=>{
+      _lsBuffer='';
+      updateLsDots();
+      document.getElementById('lsDots').classList.remove('shake');
+    },450);
+  }
+}
+function unlockApp(role){
+  S.session.unlocked=true;
+  S.session.role=role;
+  document.getElementById('lockScreen').classList.remove('show');
+  _lsBuffer='';
+  applyRoleRestrictions();
+  resetIdleTimer();
+}
+function lockApp(){
+  if(!S.profile.ownerPin){toast('Set an Owner PIN first in Settings');return;}
+  S.session.unlocked=false;
+  if(_idleTimer)clearTimeout(_idleTimer);
+  showLockScreen();
+}
+
+// ── Role restrictions (cashier mode) ──
+function applyRoleRestrictions(){
+  const cashier=S.session.role==='cashier';
+  document.body.classList.toggle('cashier-mode',cashier);
+  const active=document.querySelector('.page.active');
+  const activeId=active?active.id.replace('pg-',''):'dashboard';
+  if(cashier && ['stock','reports','suppliers','settings'].includes(activeId)){
+    showPage('sales');
+  } else {
+    showPage(activeId);
+  }
+  updateLockButtonVisibility();
+}
+function updateLockButtonVisibility(){
+  const btn=document.getElementById('tbLock');
+  if(!btn)return;
+  if(S.profile.ownerPin){
+    btn.style.display='flex';
+    btn.title=S.session.role==='cashier'?'Switch to Owner':'Lock app';
+  } else {
+    btn.style.display='none';
+  }
+}
+
+// ── Auto-lock / idle timer ──
+function setupActivityTracking(){
+  ['click','touchstart','keydown'].forEach(evt=>
+    document.addEventListener(evt,resetIdleTimer,{passive:true})
+  );
+  resetIdleTimer();
+}
+function resetIdleTimer(){
+  if(_idleTimer)clearTimeout(_idleTimer);
+  const mins=S.profile.autoLockMin;
+  if(!mins||!S.profile.ownerPin||!S.profile.appLock||!S.session.unlocked)return;
+  _idleTimer=setTimeout(()=>{ if(S.session.unlocked)lockApp(); },mins*60000);
+}
+
+// ── PIN setup modal ──
+function openPinSetup(type){
+  _pinSetupType=type;
+  const has=type==='owner'?S.profile.ownerPin:S.profile.cashierPin;
+  document.getElementById('pinSetupTitle').textContent=(has?'Change ':'Set ')+(type==='owner'?'Owner':'Cashier')+' PIN';
+  document.getElementById('ps-current').value='';
+  document.getElementById('ps-new').value='';
+  document.getElementById('ps-confirm').value='';
+  document.getElementById('pinSetupErr').textContent='';
+  document.getElementById('pinSetupCurrentWrap').style.display=has?'block':'none';
+  document.getElementById('pinRemoveBtn').style.display=has?'inline-flex':'none';
+  openModal('pinSetupModal');
+}
+function savePinSetup(){
+  const type=_pinSetupType;
+  const field=type==='owner'?'ownerPin':'cashierPin';
+  const has=S.profile[field];
+  const err=document.getElementById('pinSetupErr');
+  if(has){
+    const cur=document.getElementById('ps-current').value;
+    if(simpleHash(cur)!==has){err.textContent='Current PIN is incorrect';return;}
+  }
+  const n=document.getElementById('ps-new').value;
+  const c=document.getElementById('ps-confirm').value;
+  if(!/^\d{4}$/.test(n)){err.textContent='PIN must be exactly 4 digits';return;}
+  if(n!==c){err.textContent='PINs do not match';return;}
+  const nh=simpleHash(n);
+  if(type==='cashier' && S.profile.ownerPin===nh){err.textContent='Cashier PIN must differ from Owner PIN';return;}
+  if(type==='owner' && S.profile.cashierPin===nh){err.textContent='Owner PIN must differ from Cashier PIN';return;}
+  S.profile[field]=nh;
+  persist();closeModal('pinSetupModal');renderSettings();updateLockButtonVisibility();
+  toast((type==='owner'?'Owner':'Cashier')+' PIN saved');
+}
+function removePin(){
+  const type=_pinSetupType;
+  const field=type==='owner'?'ownerPin':'cashierPin';
+  if(!confirm('Remove this PIN?'))return;
+  if(type==='owner'){
+    S.profile.appLock=false;
+    if(S.session.role==='cashier'){S.session.role='owner';applyRoleRestrictions();}
+  }
+  S.profile[field]='';
+  persist();closeModal('pinSetupModal');renderSettings();updateLockButtonVisibility();
+  toast('PIN removed');
+}
+
+// ── App Lock toggle / auto-lock select ──
+function toggleAppLock(){
+  const on=document.getElementById('s-applock').checked;
+  if(on && !S.profile.ownerPin){
+    toast('Set an Owner PIN first');
+    document.getElementById('s-applock').checked=false;
+    return;
+  }
+  S.profile.appLock=on;persist();resetIdleTimer();
+  toast(on?'App lock enabled':'App lock disabled');
+}
+function saveAutoLock(){
+  S.profile.autoLockMin=parseInt(document.getElementById('s-autolock').value)||0;
+  persist();resetIdleTimer();
+}
+
+// ── Owner-PIN gate for destructive actions ──
+function requireOwnerPin(message,callback){
+  if(!S.profile.ownerPin){callback();return;}
+  _pinPromptCallback=callback;
+  document.getElementById('pinPromptMsg').textContent=message+' Enter the Owner PIN to continue.';
+  document.getElementById('pp-pin').value='';
+  document.getElementById('pinPromptErr').textContent='';
+  openModal('pinPromptModal');
+  setTimeout(()=>document.getElementById('pp-pin').focus(),200);
+}
+function confirmPinPrompt(){
+  const v=document.getElementById('pp-pin').value;
+  if(simpleHash(v)!==S.profile.ownerPin){
+    document.getElementById('pinPromptErr').textContent='Incorrect PIN';
+    return;
+  }
+  closeModal('pinPromptModal');
+  const cb=_pinPromptCallback;_pinPromptCallback=null;
+  if(cb)cb();
+}
+
 // ── BOOT ──────────────────────────────────────────────
 (function boot(){
   document.getElementById('tbDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
@@ -1482,9 +2321,14 @@ function makeIcon(size,text,color){
   if(S.profile.light)document.body.classList.add('light');
   if(S.profile.accent)document.documentElement.style.setProperty('--ac',S.profile.accent);
   applyProfile();
+  initSecurity();
   renderDash();
   document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
   initPWA();
+  if(S.profile.cloudEnabled && S.profile.cloudConfig && S.profile.cloudShopCode){
+    updateCloudStatusUI('syncing');
+    initCloudFromSavedConfig();
+  }
 })();
 </script>
 </body>
