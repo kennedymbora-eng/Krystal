@@ -1,18 +1,22 @@
-/* ElectroPro Manager — Service Worker v1.2
+/* ElectroPro Manager — Service Worker v1.3
    Update flow: new SW installs and waits. The app shows an
    "Update Available" banner; tapping Reload sends SKIP_WAITING,
    which activates the new SW and the page reloads itself.
 
    Offline strategy:
-   - On install, cache the app shell (index.html and ./).
-     Each resource is cached individually so one failure doesn't
-     break the whole install.
+   - On install, cache the app shell (index.html and ./) using
+     explicit string keys.
    - For navigation requests (opening/reloading the app), try the
-     network first; if offline, serve the cached index.html.
+     network first. On success, store the fresh response under the
+     SAME canonical './index.html' key the offline fallback reads
+     from — this is the part v1.2 got wrong (it cached under the
+     raw Request object, a different key than the fallback looked
+     up, so the offline copy never actually got refreshed).
    - For everything else, cache-first with background refresh. */
 
-const CACHE = 'electropro-v3';
-const SHELL = ['./', './index.html'];
+const CACHE = 'electropro-v4';
+const SHELL_URL = './index.html';
+const SHELL = ['./', SHELL_URL];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -57,14 +61,20 @@ self.addEventListener('fetch', e => {
   }
 
   // Page navigations (opening / reloading the app): network first,
-  // fall back to cached app shell when offline
+  // fall back to cached app shell when offline. Crucially, the fresh
+  // response is stored under the SAME key ('./index.html') that the
+  // offline fallback reads from, so the cached copy actually updates
+  // every time the app is opened with a connection.
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req).then(res => {
-        if (res.ok) caches.open(CACHE).then(c => c.put(req, res.clone()));
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => { c.put(SHELL_URL, copy); c.put('./', copy.clone ? copy.clone() : copy); });
+        }
         return res;
       }).catch(() =>
-        caches.match('./index.html').then(c => c || caches.match('./'))
+        caches.match(SHELL_URL).then(c => c || caches.match('./'))
       )
     );
     return;
@@ -83,3 +93,4 @@ self.addEventListener('fetch', e => {
     )
   );
 });
+

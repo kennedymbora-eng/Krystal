@@ -1759,18 +1759,47 @@ async function checkForUpdate(){
     if(st)st.textContent='Offline copy — host online to enable updates';
     return;
   }
-  if(_swReg){
-    if(st)st.textContent='Checking…';
+  if(st)st.textContent='Checking…';
+  try{
+    // 1. Ask the browser to re-check sw.js itself for byte changes
+    //    (catches the case where the service worker logic changed).
+    if(_swReg) await _swReg.update();
+
+    // 2. Independently compare the live index.html against the cached
+    //    copy. This catches the more common case where only the app's
+    //    HTML/JS changed but sw.js itself didn't — which a plain
+    //    _swReg.update() can't detect on its own.
+    const liveRes=await fetch('./index.html',{cache:'no-store'});
+    const liveText=await liveRes.text();
+    let cachedText=null;
     try{
-      await _swReg.update();
-      setTimeout(()=>{
-        if(_swReg.waiting){showUpdateBanner();}
-        else{if(st)st.textContent='You have the latest version';toast("You're up to date");}
-      },1200);
-    }catch(e){if(st)st.textContent='Could not check for updates';}
-  } else {
-    // No registration yet — force a hard refresh clearing old caches
-    if(st)st.textContent='Refreshing…';
+      const cacheNames=await caches.keys();
+      const ourCache=cacheNames.find(n=>n.startsWith('electropro-v'))||cacheNames[0];
+      if(ourCache){
+        const cache=await caches.open(ourCache);
+        const cachedRes=await cache.match('./index.html');
+        if(cachedRes) cachedText=await cachedRes.text();
+      }
+    }catch(e){}
+
+    const contentChanged = cachedText!==null && cachedText!==liveText;
+
+    setTimeout(()=>{
+      if((_swReg&&_swReg.waiting) || contentChanged){
+        showUpdateBanner();
+        if(st)st.textContent='Update ready — tap Reload below';
+      } else {
+        if(st)st.textContent='You have the latest version';
+        toast("You're up to date");
+      }
+    },800);
+  }catch(e){
+    if(st)st.textContent='Could not check for updates';
+  }
+  // Safety net: if no service worker is registered at all yet, the checks
+  // above can't detect anything meaningful — clear any stray caches and
+  // do a hard reload so the freshest version loads regardless.
+  if(!_swReg){
     try{const names=await caches.keys();await Promise.all(names.map(n=>caches.delete(n)));}catch(e){}
     location.reload();
   }
