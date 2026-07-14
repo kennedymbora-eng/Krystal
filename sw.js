@@ -1,43 +1,51 @@
-/* ElectroPro Manager — Service Worker v1.3
-   Update flow: new SW installs and waits. The app shows an
-   "Update Available" banner; tapping Reload sends SKIP_WAITING,
-   which activates the new SW and the page reloads itself.
+/* ElectroPro Manager — Service Worker v1.4
+   Key fix over v1.3: Firebase SDK scripts are now cached during
+   install so the app works fully offline after first load.
+   Previously they were excluded from caching, causing
+   "firebase is not defined" errors when offline. */
 
-   Offline strategy:
-   - On install, cache the app shell (index.html and ./) using
-     explicit string keys.
-   - For navigation requests (opening/reloading the app), try the
-     network first. On success, store the fresh response under the
-     SAME canonical './index.html' key the offline fallback reads
-     from — this is the part v1.2 got wrong (it cached under the
-     raw Request object, a different key than the fallback looked
-     up, so the offline copy never actually got refreshed).
-   - For everything else, cache-first with background refresh. */
+const CACHE = 'electropro-v5';
 
-const CACHE = 'electropro-v4';
-const SHELL_URL = './index.html';
-const SHELL = ['./', SHELL_URL];
+// App shell — the two HTML entry points
+const SHELL = ['./', './index.html'];
+
+// Firebase SDK scripts from Google CDN — cached during install
+// so they're available offline after the first visit.
+const FIREBASE_SCRIPTS = [
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache =>
-      Promise.all(SHELL.map(url =>
-        fetch(url, { cache: 'reload' })
-          .then(res => { if (res.ok) return cache.put(url, res.clone()); })
-          .catch(() => {}) // never let one missing asset block install
-      ))
+      Promise.all([
+        // Cache app shell
+        ...SHELL.map(url =>
+          fetch(url, { cache: 'reload' })
+            .then(res => { if (res.ok) cache.put(url, res.clone()); })
+            .catch(() => {})
+        ),
+        // Cache Firebase SDK scripts
+        // These are versioned CDN URLs so they never change content —
+        // safe to cache indefinitely.
+        ...FIREBASE_SCRIPTS.map(url =>
+          fetch(url)
+            .then(res => { if (res.ok) cache.put(url, res.clone()); })
+            .catch(() => {}) // silently skip if no internet on install
+        ),
+      ])
     )
-    // No self.skipWaiting() here on purpose — lets the app control
-    // when an update is applied via the Reload button. On a first
-    // ever install (no existing controller) the browser activates
-    // this worker immediately regardless.
   );
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      ))
       .then(() => clients.claim())
   );
 });
@@ -50,47 +58,74 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (!req.url.startsWith('http')) return;
 
-  // Google Sheets sync: network-first, fallback to empty JSON when offline
+  // Google Sheets sync — network only, no cache
   if (req.url.includes('script.google.com')) {
     e.respondWith(
       fetch(req).catch(() =>
-        new Response('{"ok":false,"items":[]}', { headers: { 'Content-Type': 'application/json' } })
+        new Response('{"ok":false,"items":[]}', {
+          headers: { 'Content-Type': 'application/json' }
+        })
       )
     );
     return;
   }
 
-  // Page navigations (opening / reloading the app): network first,
-  // fall back to cached app shell when offline. Crucially, the fresh
-  // response is stored under the SAME key ('./index.html') that the
-  // offline fallback reads from, so the cached copy actually updates
-  // every time the app is opened with a connection.
+  // Firebase SDK scripts — cache-first (they're versioned, never change)
+  if (req.url.includes('gstatic.com/firebasejs') ||
+      (req.url.includes('firebase') && req.url.includes('compat'))) {
+    e.respondWith(
+      caches.match(req).then(cached => {
+        if (cached) return cached;
+        return fetch(req).then(res => {
+          if (res.ok) {
+            caches.open(CACHE).then(c => c.put(req, res.clone()));
+          }
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  // Firebase Auth/Firestore API calls — network only, never cache
+  if (req.url.includes('firebaseapp.com') ||
+      req.url.includes('googleapis.com') ||
+      req.url.includes('firestore.googleapis.com') ||
+      req.url.includes('identitytoolkit')) {
+    e.respondWith(fetch(req).catch(() =>
+      new Response('', { status: 503, statusText: 'Offline' })
+    ));
+    return;
+  }
+
+  // Page navigations — network first, fall back to cached shell
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req).then(res => {
         if (res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then(c => { c.put(SHELL_URL, copy); c.put('./', copy.clone ? copy.clone() : copy); });
+          caches.open(CACHE).then(c => {
+            c.put('./index.html', copy);
+            c.put('./', res.clone());
+          });
         }
         return res;
       }).catch(() =>
-        caches.match(SHELL_URL).then(c => c || caches.match('./'))
+        caches.match('./index.html').then(c => c || caches.match('./'))
       )
     );
     return;
   }
 
-  // Everything else: cache-first, refresh in background
+  // Everything else — cache first, refresh in background
   e.respondWith(
     caches.open(CACHE).then(cache =>
       cache.match(req).then(cached => {
-        const live = fetch(req).then(res => {
-          if (res.ok) cache.put(req, res.clone());
-          return res;
-        }).catch(() => cached);
+        const live = fetch(req)
+          .then(res => { if (res.ok) cache.put(req, res.clone()); return res; })
+          .catch(() => cached);
         return cached || live;
       })
     )
   );
 });
-
