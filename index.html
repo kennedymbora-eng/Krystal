@@ -779,7 +779,7 @@ auth.onAuthStateChanged(async user => {
 
 async function bootUser(user) {
   try {
-    // Check if superadmin
+    // Super admin — bypass all shop logic
     if (user.email === SUPER_ADMIN_EMAIL) {
       S.role = 'superadmin';
       S.shopCode = 'ADMIN';
@@ -793,38 +793,51 @@ async function bootUser(user) {
       showPage('admin');
       return;
     }
-    // Find which shop this user belongs to
-    const userShopsSnap = await db.collectionGroup('users')
-      .where('uid', '==', user.uid).limit(1).get();
-    if (userShopsSnap.empty) {
-      // User has no shop yet — check if they have a pending invite
+
+    // Step 1: Look up which shop this user belongs to via userShops/{uid}
+    // This is a single document read — no collectionGroup needed,
+    // no index required, works with simple security rules.
+    const userShopSnap = await db.collection('userShops').doc(user.uid).get();
+
+    if (!userShopSnap.exists) {
+      // No shop link found — check for a pending invite
       const inviteSnap = await db.collection('invites')
-        .where('email', '==', user.email).where('status', '==', 'pending').limit(1).get();
+        .where('email', '==', user.email)
+        .where('status', '==', 'pending')
+        .limit(1).get();
       if (!inviteSnap.empty) {
-        const invite = inviteSnap.docs[0].data();
-        await acceptInvite(inviteSnap.docs[0].id, invite, user);
-      } else {
-        // Brand new user - create shop
-        showAuth('authCreateShop');
+        await acceptInvite(inviteSnap.docs[0].id, inviteSnap.docs[0].data(), user);
         return;
       }
-    }
-    // Load user profile
-    const userRef = userShopsSnap.docs[0].ref;
-    const userSnap = await userRef.get();
-    S.userDoc = userSnap.data();
-    S.shopCode = userRef.parent.parent.id;
-    S.role = S.userDoc.role || 'cashier';
-    // Check shop status
-    const shopRegistrySnap = await db.collection('shopRegistry').doc(S.shopCode).get();
-    if (shopRegistrySnap.exists && shopRegistrySnap.data().status === 'paused') {
-      const msg = shopRegistrySnap.data().pauseMessage || 'Your account has been paused. Contact us to reactivate.';
-      showPausedScreen(msg);
+      // Truly new user — send them to create a shop
+      showAuth('authCreateShop');
       return;
     }
-    // Load shop info
-    const shopInfoSnap = await db.collection('shops').doc(S.shopCode).collection('info').doc('config').get();
+
+    const shopCode = userShopSnap.data().shopCode;
+
+    // Step 2: Check if shop is paused
+    const registrySnap = await db.collection('shopRegistry').doc(shopCode).get();
+    if (registrySnap.exists && registrySnap.data().status === 'paused') {
+      showPausedScreen(registrySnap.data().pauseMessage || 'Your account has been paused. Contact us to reactivate.');
+      return;
+    }
+
+    // Step 3: Load user's profile doc from their shop
+    const userDocSnap = await db.collection('shops').doc(shopCode).collection('users').doc(user.uid).get();
+    if (!userDocSnap.exists) {
+      showAuth('authLogin');
+      document.getElementById('li-err').textContent = 'Account not found in shop. Contact your shop owner.';
+      return;
+    }
+    S.userDoc  = userDocSnap.data();
+    S.shopCode = shopCode;
+    S.role     = S.userDoc.role || 'cashier';
+
+    // Step 4: Load shop config
+    const shopInfoSnap = await db.collection('shops').doc(shopCode).collection('info').doc('config').get();
     S.shopDoc = shopInfoSnap.exists ? shopInfoSnap.data() : {};
+
     applyLocalPrefs();
     applyShopInfo();
     showApp();
@@ -832,6 +845,7 @@ async function bootUser(user) {
     updateSidebarUser(S.userDoc);
     startListeners();
     showPage('dashboard');
+
   } catch(e) {
     console.error('bootUser error:', e);
     showAuth('authLogin');
@@ -841,15 +855,20 @@ async function bootUser(user) {
 
 async function acceptInvite(inviteId, invite, user) {
   const shopCode = invite.shopCode;
-  const userRef = db.collection('shops').doc(shopCode).collection('users').doc(user.uid);
-  await userRef.set({
+  const batch = db.batch();
+  // Write user profile into the shop
+  batch.set(db.collection('shops').doc(shopCode).collection('users').doc(user.uid), {
     uid: user.uid,
     name: invite.name || user.email.split('@')[0],
     email: user.email,
     role: invite.role || 'cashier',
     joinedAt: Date.now()
   });
-  await db.collection('invites').doc(inviteId).update({ status: 'accepted' });
+  // Write the fast-lookup index document
+  batch.set(db.collection('userShops').doc(user.uid), { shopCode, updatedAt: Date.now() });
+  // Mark invite as accepted
+  batch.update(db.collection('invites').doc(inviteId), { status: 'accepted' });
+  await batch.commit();
   await bootUser(user);
 }
 
@@ -897,29 +916,37 @@ async function doCreateShop() {
   const pass  = document.getElementById('cs-pass').value;
   const errEl = document.getElementById('cs-err');
   const btn   = document.getElementById('cs-btn');
-  if (!uname || !sname || !email || !pass) { errEl.textContent = 'Fill in all fields'; return; }
-  if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
-  btn.textContent = 'Creating…'; errEl.textContent = '';
+  if (!uname||!sname||!email||!pass) { errEl.textContent='Fill in all fields'; return; }
+  if (pass.length < 6) { errEl.textContent='Password must be at least 6 characters'; return; }
+  btn.textContent='Creating…'; errEl.textContent='';
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, pass);
     const user = cred.user;
     const shopCode = genShopCode(sname);
-    // Create shop registry entry
-    await db.collection('shopRegistry').doc(shopCode).set({
-      shopCode, shopName: sname, ownerEmail: email,
-      status: 'active', createdAt: Date.now()
+    const batch = db.batch();
+    // Shop registry
+    batch.set(db.collection('shopRegistry').doc(shopCode), {
+      shopCode, shopName:sname, ownerEmail:email, status:'active', createdAt:Date.now()
     });
-    // Create shop info
-    await db.collection('shops').doc(shopCode).collection('info').doc('config').set({
-      shopName: sname, location: 'Manyatta, Embu', phone: '', mpesa: '',
-      email: '', tag: 'Quality Electronics at Wholesale Prices', shopCode
+    // Shop info
+    batch.set(db.collection('shops').doc(shopCode).collection('info').doc('config'), {
+      shopName:sname, location:'Manyatta, Embu', phone:'', mpesa:'',
+      email:'', tag:'Quality Electronics at Wholesale Prices', shopCode
     });
-    // Create owner user doc
-    await db.collection('shops').doc(shopCode).collection('users').doc(user.uid).set({
-      uid: user.uid, name: uname, email, role: 'owner', joinedAt: Date.now()
+    // Owner user profile inside shop
+    batch.set(db.collection('shops').doc(shopCode).collection('users').doc(user.uid), {
+      uid:user.uid, name:uname, email, role:'owner', joinedAt:Date.now()
     });
-    // Seed demo stock
+    // Fast-lookup index — this is what bootUser reads first
+    // No collectionGroup query needed, no index required
+    batch.set(db.collection('userShops').doc(user.uid), {
+      shopCode, updatedAt:Date.now()
+    });
+    await batch.commit();
+    // Seed demo inventory
     await seedShopData(shopCode);
+    // bootUser will be called automatically by onAuthStateChanged
+    // No need to call it here — it will now find the userShops doc
   } catch(e) {
     errEl.textContent = friendlyAuthError(e.code) || e.message;
     btn.textContent = 'Create Shop';
