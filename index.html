@@ -43,6 +43,13 @@ input,select,textarea{font-family:var(--font);}
 .auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--bd);}
 .auth-divider::before{left:0;}.auth-divider::after{right:0;}
 
+/* ── LOADING SCREEN ── */
+.loading-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:2500;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.loading-screen.show{display:flex;}
+.spinner{width:40px;height:40px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:13px;color:var(--tx2);font-weight:600;}
+
 /* ── PAUSED SCREEN ── */
 .paused-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:1900;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;}
 .paused-screen.show{display:flex;}
@@ -364,6 +371,16 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     </div>
   </div>
   <button class="btn btn-s" onclick="doSignOut()">Sign Out</button>
+</div>
+
+<!-- ═══════ LOADING SCREEN ═══════ -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="auth-logo">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#071a15" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  </div>
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingMsg">Loading your shop…</div>
+  <button class="btn btn-s btn-sm" id="loadingCancel" style="display:none;margin-top:8px" onclick="cancelBoot()">Cancel</button>
 </div>
 
 <!-- ═══════ MAIN APP ═══════ -->
@@ -786,12 +803,21 @@ auth.onAuthStateChanged(async user => {
 });
 
 async function bootUser(user) {
+  showLoading('Loading your account…');
+  // Wrap entire boot in a 15-second timeout so it never hangs silently
+  const bootTimeout = setTimeout(() => {
+    if (document.getElementById('loadingScreen').classList.contains('show')) {
+      document.getElementById('loadingMsg').textContent = 'Taking longer than expected…';
+      document.getElementById('loadingCancel').style.display = 'inline-flex';
+    }
+  }, 6000);
   try {
     // Super admin — bypass all shop logic
     if (user.email === SUPER_ADMIN_EMAIL) {
       S.role = 'superadmin';
       S.shopCode = 'ADMIN';
       applyLocalPrefs();
+      clearTimeout(bootTimeout);
       showApp();
       buildSidebar();
       updateSidebarUser({ name: 'Kennedy Mbora', role: 'superadmin', email: user.email });
@@ -827,6 +853,7 @@ async function bootUser(user) {
     // Step 2: Check if shop is paused
     const registrySnap = await db.collection('shopRegistry').doc(shopCode).get();
     if (registrySnap.exists && registrySnap.data().status === 'paused') {
+      clearTimeout(bootTimeout);
       showPausedScreen(registrySnap.data().pauseMessage || 'Your account has been paused. Contact us to reactivate.');
       return;
     }
@@ -834,6 +861,7 @@ async function bootUser(user) {
     // Step 3: Load user's profile doc from their shop
     const userDocSnap = await db.collection('shops').doc(shopCode).collection('users').doc(user.uid).get();
     if (!userDocSnap.exists) {
+      clearTimeout(bootTimeout);
       showAuth('authLogin');
       document.getElementById('li-err').textContent = 'Account not found in shop. Contact your shop owner.';
       return;
@@ -843,9 +871,11 @@ async function bootUser(user) {
     S.role     = S.userDoc.role || 'cashier';
 
     // Step 4: Load shop config
+    showLoading('Almost ready…');
     const shopInfoSnap = await db.collection('shops').doc(shopCode).collection('info').doc('config').get();
     S.shopDoc = shopInfoSnap.exists ? shopInfoSnap.data() : {};
 
+    clearTimeout(bootTimeout);
     applyLocalPrefs();
     applyShopInfo();
     showApp();
@@ -855,9 +885,16 @@ async function bootUser(user) {
     showPage('dashboard');
 
   } catch(e) {
+    clearTimeout(bootTimeout);
     console.error('bootUser error:', e);
+    hideLoading();
     showAuth('authLogin');
-    document.getElementById('li-err').textContent = 'Error loading your account: ' + e.message;
+    const msg = e.code === 'permission-denied'
+      ? 'Permission denied — check your Firestore rules are published'
+      : e.message === 'Failed to get document because the client is offline.'
+      ? 'No internet connection — connect and try again'
+      : 'Error loading account: ' + e.message;
+    document.getElementById('li-err').textContent = msg;
   }
 }
 
@@ -881,22 +918,48 @@ async function acceptInvite(inviteId, invite, user) {
 }
 
 // ── AUTH FUNCTIONS ────────────────────────────────────
-function showAuth(id) {
+function showLoading(msg) {
   document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('show'));
   document.getElementById('pausedScreen').classList.remove('show');
+  document.getElementById('loadingMsg').textContent = msg || 'Loading your shop…';
+  document.getElementById('loadingCancel').style.display = 'none';
+  document.getElementById('loadingScreen').classList.add('show');
+  // Reveal cancel button after 8 seconds if still loading
+  setTimeout(() => {
+    if (document.getElementById('loadingScreen').classList.contains('show')) {
+      document.getElementById('loadingCancel').style.display = 'inline-flex';
+    }
+  }, 8000);
+}
+function hideLoading() {
+  document.getElementById('loadingScreen').classList.remove('show');
+}
+function cancelBoot() {
+  hideLoading();
+  teardownListeners();
+  auth.signOut();
+  showAuth('authLogin');
+  document.getElementById('li-err').textContent = 'Timed out — please try again';
+}
+function showAuth(id) {
+  document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('show'));
+  document.getElementById('loadingScreen').classList.remove('show');
+  document.getElementById('pausedScreen').classList.remove('show');
   document.getElementById('mainApp').classList.remove('ready');
+  document.getElementById('li-btn').textContent = 'Sign In';
+  document.getElementById('li-err').textContent = '';
   document.getElementById(id).classList.add('show');
 }
-
 function showApp() {
   document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('show'));
+  document.getElementById('loadingScreen').classList.remove('show');
   document.getElementById('pausedScreen').classList.remove('show');
   document.getElementById('mainApp').classList.add('ready');
   document.getElementById('tbDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 }
-
 function showPausedScreen(msg) {
   document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('show'));
+  document.getElementById('loadingScreen').classList.remove('show');
   document.getElementById('mainApp').classList.remove('ready');
   document.getElementById('pausedMsg').textContent = msg;
   document.getElementById('pausedScreen').classList.add('show');
@@ -911,6 +974,8 @@ async function doLogin() {
   btn.textContent = 'Signing in…'; errEl.textContent = '';
   try {
     await auth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged will fire and call bootUser
+    // Loading screen is shown there — button resets on error only
   } catch(e) {
     errEl.textContent = friendlyAuthError(e.code);
     btn.textContent = 'Sign In';
