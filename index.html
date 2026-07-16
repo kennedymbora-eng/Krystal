@@ -767,6 +767,13 @@ function handleLogoTap() {
 }
 
 // ── AUTH STATE ────────────────────────────────────────
+// _creatingShop flag prevents onAuthStateChanged from running bootUser
+// before doCreateShop has finished writing all Firestore documents.
+// Without this flag, bootUser fires immediately after the Auth account
+// is created, finds no userShops/{uid} doc (not written yet), and
+// incorrectly redirects back to the Create Shop screen.
+let _creatingShop = false;
+
 auth.onAuthStateChanged(async user => {
   if (!user) {
     showAuth('authLogin');
@@ -774,6 +781,7 @@ auth.onAuthStateChanged(async user => {
     return;
   }
   S.user = user;
+  if (_creatingShop) return; // doCreateShop will call bootUser manually
   await bootUser(user);
 });
 
@@ -919,35 +927,45 @@ async function doCreateShop() {
   if (!uname||!sname||!email||!pass) { errEl.textContent='Fill in all fields'; return; }
   if (pass.length < 6) { errEl.textContent='Password must be at least 6 characters'; return; }
   btn.textContent='Creating…'; errEl.textContent='';
+
+  // Set flag BEFORE creating the Auth account so onAuthStateChanged
+  // knows to wait — it fires the moment the account is created,
+  // before any Firestore writes have happened.
+  _creatingShop = true;
+
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, pass);
     const user = cred.user;
     const shopCode = genShopCode(sname);
+
+    // Write all documents in one atomic batch
     const batch = db.batch();
-    // Shop registry
     batch.set(db.collection('shopRegistry').doc(shopCode), {
-      shopCode, shopName:sname, ownerEmail:email, status:'active', createdAt:Date.now()
+      shopCode, shopName:sname, ownerEmail:email,
+      status:'active', createdAt:Date.now()
     });
-    // Shop info
     batch.set(db.collection('shops').doc(shopCode).collection('info').doc('config'), {
       shopName:sname, location:'Manyatta, Embu', phone:'', mpesa:'',
       email:'', tag:'Quality Electronics at Wholesale Prices', shopCode
     });
-    // Owner user profile inside shop
     batch.set(db.collection('shops').doc(shopCode).collection('users').doc(user.uid), {
       uid:user.uid, name:uname, email, role:'owner', joinedAt:Date.now()
     });
-    // Fast-lookup index — this is what bootUser reads first
-    // No collectionGroup query needed, no index required
+    // This is the key document bootUser reads — must exist before bootUser runs
     batch.set(db.collection('userShops').doc(user.uid), {
       shopCode, updatedAt:Date.now()
     });
     await batch.commit();
-    // Seed demo inventory
+
+    // Seed demo inventory after the batch so the shop structure exists
     await seedShopData(shopCode);
-    // bootUser will be called automatically by onAuthStateChanged
-    // No need to call it here — it will now find the userShops doc
+
+    // All writes done — now safe to boot the user
+    _creatingShop = false;
+    await bootUser(user);
+
   } catch(e) {
+    _creatingShop = false;
     errEl.textContent = friendlyAuthError(e.code) || e.message;
     btn.textContent = 'Create Shop';
   }
