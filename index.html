@@ -854,16 +854,10 @@ async function bootUser(user) {
     startListeners();
     showPage('dashboard');
 
-  } catch (e) {
-  _creatingShop = false;
-
-  alert(
-    "Error Code: " + e.code +
-    "\n\nMessage: " + e.message
-  );
-
-  errEl.textContent = e.code + " : " + e.message;
-  btn.textContent = "Create Shop";
+  } catch(e) {
+    console.error('bootUser error:', e);
+    showAuth('authLogin');
+    document.getElementById('li-err').textContent = 'Error loading your account: ' + e.message;
   }
 }
 
@@ -879,28 +873,12 @@ async function acceptInvite(inviteId, invite, user) {
     joinedAt: Date.now()
   });
   // Write the fast-lookup index document
-  batch.set(db.collection('userShops').doc(user.uid), {
-  shopCode, updatedAt: Date.now()
-});
-
-alert("About to commit batch");
-
-await batch.commit();
-
-alert("Batch committed successfully");
-
-alert("About to seed shop");
-
-await seedShopData(shopCode);
-
-alert("Shop seeded successfully");
-
-// All writes done — now safe to boot the user
-_creatingShop = false;
-
-alert("About to boot user");
-
-await bootUser(user);
+  batch.set(db.collection('userShops').doc(user.uid), { shopCode, updatedAt: Date.now() });
+  // Mark invite as accepted
+  batch.update(db.collection('invites').doc(inviteId), { status: 'accepted' });
+  await batch.commit();
+  await bootUser(user);
+}
 
 // ── AUTH FUNCTIONS ────────────────────────────────────
 function showAuth(id) {
