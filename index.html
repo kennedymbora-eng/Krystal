@@ -66,8 +66,9 @@ input,select,textarea{font-family:var(--font);}
 /* ── TOPBAR ── */
 .topbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:50;}
 .tb-left{display:flex;align-items:center;gap:10px;}
-.hamburger{width:32px;height:32px;background:none;border:none;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:4px;}
-.hamburger span{display:block;height:2px;background:var(--tx);border-radius:1px;transition:all .25s;}
+.hamburger{width:38px;height:38px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r8);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:6px;cursor:pointer;flex-shrink:0;}
+.hamburger:active{background:var(--bd);}
+.hamburger span{display:block;width:18px;height:2.5px;background:var(--tx);border-radius:1.5px;transition:all .25s;}
 .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
 .hamburger.open span:nth-child(2){opacity:0;}
 .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
@@ -319,31 +320,53 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     <button class="btn btn-p btn-full" onclick="doLogin()" id="li-btn">Sign In</button>
     <div class="auth-link">Forgot password? <span onclick="doResetPassword()">Reset it</span></div>
   </div>
-  <div class="auth-link" style="margin-top:16px">New shop? <span onclick="showAuth('authCreateShop')">Create account</span></div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;width:100%;max-width:360px">
+    <button class="btn btn-s btn-full" onclick="showAuth('authCreateShop')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Create a new shop
+    </button>
+    <button class="btn btn-s btn-full" onclick="showAuth('authJoinShop')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Join a shop (I have a code)
+    </button>
+  </div>
 </div>
 
-<!-- Create Shop -->
+<!-- Create Shop (owners only) -->
 <div class="auth-screen" id="authCreateShop">
   <div class="auth-logo">
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#071a15" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
   </div>
   <div class="auth-title">Create Your Shop</div>
-  <div class="auth-sub">Set up your account and shop in seconds</div>
+  <div class="auth-sub">You will be the owner with full access</div>
   <div class="auth-card">
-    <div class="frow">
-      <div class="fg"><label>Your Name</label><input type="text" id="cs-uname" placeholder="Ken Mbora"></div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>Shop Name</label><input type="text" id="cs-sname" placeholder="ElectroPro Wholesale"></div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>Email</label><input type="email" id="cs-email" placeholder="you@example.com" autocomplete="email"></div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>Password</label><input type="password" id="cs-pass" placeholder="Min 6 characters" autocomplete="new-password"></div>
-    </div>
+    <div class="frow"><div class="fg"><label>Your Name</label><input type="text" id="cs-uname" placeholder="Ken Mbora"></div></div>
+    <div class="frow"><div class="fg"><label>Shop Name</label><input type="text" id="cs-sname" placeholder="ElectroPro Wholesale"></div></div>
+    <div class="frow"><div class="fg"><label>Email</label><input type="email" id="cs-email" placeholder="you@example.com" autocomplete="email"></div></div>
+    <div class="frow"><div class="fg"><label>Password</label><input type="password" id="cs-pass" placeholder="Min 6 characters" autocomplete="new-password"></div></div>
     <div class="auth-err" id="cs-err"></div>
     <button class="btn btn-p btn-full" onclick="doCreateShop()" id="cs-btn">Create Shop</button>
+  </div>
+  <div class="auth-link" style="margin-top:16px">Already have an account? <span onclick="showAuth('authLogin')">Sign in</span></div>
+</div>
+
+<!-- Join Shop (cashiers / invited staff) -->
+<div class="auth-screen" id="authJoinShop">
+  <div class="auth-logo">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#071a15" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  </div>
+  <div class="auth-title">Join a Shop</div>
+  <div class="auth-sub">Enter the shop code your employer shared with you</div>
+  <div class="auth-card">
+    <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r8);padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--tx2);line-height:1.6">
+      Ask your shop owner for the <strong style="color:var(--tx)">Shop Code</strong>. It looks like <code>EP-7K2M9</code>. They can find it in Settings.
+    </div>
+    <div class="frow"><div class="fg"><label>Your Name</label><input type="text" id="js-name" placeholder="Your full name"></div></div>
+    <div class="frow"><div class="fg"><label>Email</label><input type="email" id="js-email" placeholder="you@example.com" autocomplete="email"></div></div>
+    <div class="frow"><div class="fg"><label>Password</label><input type="password" id="js-pass" placeholder="Min 6 characters" autocomplete="new-password"></div></div>
+    <div class="frow"><div class="fg"><label>Shop Code</label><input type="text" id="js-code" placeholder="XX-XXXXX" style="text-transform:uppercase;letter-spacing:2px;font-weight:700;font-size:15px;text-align:center"></div></div>
+    <div class="auth-err" id="js-err"></div>
+    <button class="btn btn-p btn-full" onclick="doJoinShop()" id="js-btn">Join Shop</button>
   </div>
   <div class="auth-link" style="margin-top:16px">Already have an account? <span onclick="showAuth('authLogin')">Sign in</span></div>
 </div>
@@ -828,27 +851,23 @@ async function bootUser(user) {
       return;
     }
 
-    // Step 1: Look up which shop this user belongs to via userShops/{uid}
-    // This is a single document read — no collectionGroup needed,
-    // no index required, works with simple security rules.
+    // Step 1: Look up which shop this user belongs to
+    showLoading('Finding your shop…');
     const userShopSnap = await db.collection('userShops').doc(user.uid).get();
 
     if (!userShopSnap.exists) {
-      // No shop link found — check for a pending invite
-      const inviteSnap = await db.collection('invites')
-        .where('email', '==', user.email)
-        .where('status', '==', 'pending')
-        .limit(1).get();
-      if (!inviteSnap.empty) {
-        await acceptInvite(inviteSnap.docs[0].id, inviteSnap.docs[0].data(), user);
-        return;
-      }
-      // Truly new user — send them to create a shop
+      // No shop linked — this is a brand new account with no shop yet.
+      // Direct them to Create Shop (owner) — cashiers should have used
+      // "Join a Shop" which writes userShops before bootUser runs.
+      clearTimeout(bootTimeout);
       showAuth('authCreateShop');
+      document.getElementById('cs-err').textContent =
+        'No shop found for this account. Create a shop or use "Join a Shop" if you have a shop code.';
       return;
     }
 
-    const shopCode = userShopSnap.data().shopCode;
+    const shopCode  = userShopSnap.data().shopCode;
+    const savedRole = userShopSnap.data().role || 'cashier';
 
     // Step 2: Check if shop is paused
     const registrySnap = await db.collection('shopRegistry').doc(shopCode).get();
@@ -868,7 +887,16 @@ async function bootUser(user) {
     }
     S.userDoc  = userDocSnap.data();
     S.shopCode = shopCode;
-    S.role     = S.userDoc.role || 'cashier';
+    // Validate role from both sources. shops/{shopCode}/users/{uid} is
+    // authoritative (an owner can change someone's role there directly);
+    // userShops/{uid} is only a fast-lookup cache and can drift out of
+    // sync. If they disagree, trust the shop record and repair the cache
+    // in the background rather than silently using a stale role.
+    S.role = S.userDoc.role || 'cashier';
+    if (savedRole && savedRole !== S.role) {
+      console.warn(`Role mismatch for ${user.uid}: userShops says "${savedRole}", shop record says "${S.role}". Using shop record.`);
+      db.collection('userShops').doc(user.uid).update({ role: S.role }).catch(()=>{});
+    }
 
     // Step 4: Load shop config
     showLoading('Almost ready…');
@@ -898,23 +926,86 @@ async function bootUser(user) {
   }
 }
 
-async function acceptInvite(inviteId, invite, user) {
+// Shared writer used once an invite has been validated. Writes the shop
+// user doc + userShops cache doc in one atomic batch so bootUser never
+// sees one without the other, marks the invite accepted, then boots.
+async function acceptInvite(inviteId, invite, user, name) {
   const shopCode = invite.shopCode;
+  const role = invite.role || 'cashier';
   const batch = db.batch();
-  // Write user profile into the shop
   batch.set(db.collection('shops').doc(shopCode).collection('users').doc(user.uid), {
     uid: user.uid,
-    name: invite.name || user.email.split('@')[0],
+    name: name || invite.name || user.email.split('@')[0],
     email: user.email,
-    role: invite.role || 'cashier',
+    role,
     joinedAt: Date.now()
   });
-  // Write the fast-lookup index document
-  batch.set(db.collection('userShops').doc(user.uid), { shopCode, updatedAt: Date.now() });
-  // Mark invite as accepted
+  // Store role here too — this is the fast-lookup cache bootUser and
+  // security rules rely on; it must never be written without a role.
+  batch.set(db.collection('userShops').doc(user.uid), { shopCode, role, updatedAt: Date.now() });
   batch.update(db.collection('invites').doc(inviteId), { status: 'accepted' });
   await batch.commit();
   await bootUser(user);
+}
+
+// ── JOIN SHOP (invited staff — never creates a shop) ──
+// Invites are keyed by a deterministic id (`${shopCode}_${email}`, see
+// inviteStaff) instead of an auto-id specifically so this can look one up
+// with a direct doc().get() — no query permissions needed, and Firestore
+// rules can check the same path when validating the writes below.
+async function doJoinShop() {
+  const name  = document.getElementById('js-name').value.trim();
+  const email = document.getElementById('js-email').value.trim();
+  const pass  = document.getElementById('js-pass').value;
+  const code  = document.getElementById('js-code').value.trim().toUpperCase();
+  const errEl = document.getElementById('js-err');
+  const btn   = document.getElementById('js-btn');
+  if (!name || !email || !pass || !code) { errEl.textContent = 'Fill in all fields'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
+  errEl.textContent = '';
+  btn.textContent = 'Checking invite…';
+
+  const inviteId = code + '_' + email.toLowerCase();
+
+  try {
+    // Validate BEFORE creating any Auth account — invited users must
+    // never fall through to shop creation, and we don't want to leave
+    // behind an orphaned Auth account if there's no matching invite.
+    const inviteSnap = await withTimeout(
+      db.collection('invites').doc(inviteId).get(),
+      15000, 'Timed out checking your invite — check your connection'
+    );
+    if (!inviteSnap.exists) {
+      errEl.textContent = 'No pending invite found for this email at this shop code. Ask your shop owner to invite you first.';
+      btn.textContent = 'Join Shop';
+      return;
+    }
+    const invite = inviteSnap.data();
+    if (invite.status !== 'pending') {
+      errEl.textContent = invite.status === 'accepted'
+        ? 'This invite has already been used — try signing in instead.'
+        : 'This invite is no longer valid. Ask your shop owner to re-invite you.';
+      btn.textContent = 'Join Shop';
+      return;
+    }
+
+    btn.textContent = 'Joining…';
+    // Same race-prevention as doCreateShop: onAuthStateChanged fires the
+    // instant the Auth account exists, before we've written the shop
+    // user doc or userShops cache doc — block bootUser until both exist.
+    _creatingShop = true;
+    const cred = await withTimeout(
+      auth.createUserWithEmailAndPassword(email, pass),
+      20000, 'Timed out creating your account — check your connection'
+    );
+    _creatingShop = false;
+    await acceptInvite(inviteId, invite, cred.user, name);
+
+  } catch(e) {
+    _creatingShop = false;
+    errEl.textContent = e.code === 'timeout' ? e.message : (friendlyAuthError(e.code) || e.message);
+    btn.textContent = 'Join Shop';
+  }
 }
 
 // ── AUTH FUNCTIONS ────────────────────────────────────
@@ -965,6 +1056,16 @@ function showPausedScreen(msg) {
   document.getElementById('pausedScreen').classList.add('show');
 }
 
+// Wraps a promise so it rejects with a clear timeout error instead of
+// hanging forever — used anywhere a network call can otherwise leave a
+// button stuck on "Signing in…" / "Creating…" with no feedback.
+function withTimeout(promise, ms, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject({ code: 'timeout', message: message || 'Request timed out' }), ms))
+  ]);
+}
+
 async function doLogin() {
   const email = document.getElementById('li-email').value.trim();
   const pass  = document.getElementById('li-pass').value;
@@ -973,11 +1074,14 @@ async function doLogin() {
   if (!email || !pass) { errEl.textContent = 'Enter email and password'; return; }
   btn.textContent = 'Signing in…'; errEl.textContent = '';
   try {
-    await auth.signInWithEmailAndPassword(email, pass);
+    await withTimeout(
+      auth.signInWithEmailAndPassword(email, pass),
+      15000, 'Sign-in timed out — check your connection and try again'
+    );
     // onAuthStateChanged will fire and call bootUser
     // Loading screen is shown there — button resets on error only
   } catch(e) {
-    errEl.textContent = friendlyAuthError(e.code);
+    errEl.textContent = e.code === 'timeout' ? e.message : friendlyAuthError(e.code);
     btn.textContent = 'Sign In';
   }
 }
@@ -999,7 +1103,10 @@ async function doCreateShop() {
   _creatingShop = true;
 
   try {
-    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    const cred = await withTimeout(
+      auth.createUserWithEmailAndPassword(email, pass),
+      20000, 'Timed out creating your account — check your connection and try again'
+    );
     const user = cred.user;
     const shopCode = genShopCode(sname);
 
@@ -1016,11 +1123,13 @@ async function doCreateShop() {
     batch.set(db.collection('shops').doc(shopCode).collection('users').doc(user.uid), {
       uid:user.uid, name:uname, email, role:'owner', joinedAt:Date.now()
     });
-    // This is the key document bootUser reads — must exist before bootUser runs
+    // This is the key document bootUser reads — must exist before bootUser runs.
+    // role must be stored here too (not just in the shop's users doc) since
+    // this is the fast-lookup cache bootUser and security rules rely on.
     batch.set(db.collection('userShops').doc(user.uid), {
-      shopCode, updatedAt:Date.now()
+      shopCode, role:'owner', updatedAt:Date.now()
     });
-    await batch.commit();
+    await withTimeout(batch.commit(), 20000, 'Timed out setting up your shop — check your connection and try again');
 
     // Seed demo inventory after the batch so the shop structure exists
     await seedShopData(shopCode);
@@ -1031,7 +1140,7 @@ async function doCreateShop() {
 
   } catch(e) {
     _creatingShop = false;
-    errEl.textContent = friendlyAuthError(e.code) || e.message;
+    errEl.textContent = e.code === 'timeout' ? e.message : (friendlyAuthError(e.code) || e.message);
     btn.textContent = 'Create Shop';
   }
 }
@@ -1434,10 +1543,29 @@ async function completeSale() {
       lastSold: Date.now()
     });
   });
-  await batch.commit();
+
+  // Update local state immediately instead of awaiting the network
+  // round-trip. Firestore's batch.commit() promise only resolves once the
+  // server acknowledges the write — while offline that never happens, so
+  // awaiting it here hung the whole flow: the sale sat queued "in the
+  // background" and the cashier never saw a receipt or a cleared cart.
+  // The write is already applied to Firestore's local cache the instant
+  // commit() is called, so it's safe to update the UI now and let the
+  // commit sync whenever connectivity returns.
+  S.sales.unshift(sale);
+  items.forEach(c => {
+    const it = S.items.find(i => i.id === c.itemId);
+    if (it) { it.stock -= c.qty; it.lastSold = Date.now(); }
+  });
+  batch.commit().catch(e => {
+    console.error('Sale sync error:', e);
+    toast('Sale saved on this device — will sync when back online');
+  });
+
   S.cart=[]; document.getElementById('custName').value='';
   renderCart(); renderPOS(); renderHist();
-  showInvoice(sale); toast('Sale recorded — KSh '+fmt(sale.total));
+  showInvoice(sale);
+  toast('Sale recorded — KSh '+fmt(sale.total));
 }
 function toggleHistory() {
   const pv=document.getElementById('posView'), hv=document.getElementById('histView');
@@ -1556,7 +1684,12 @@ async function renderStaff() {
     const invSnap = await db.collection('invites').where('shopCode','==',S.shopCode).where('status','==','pending').get();
     if (!invSnap.empty) {
       el.innerHTML += '<div class="set-sec-title" style="margin-top:14px">Pending Invites</div>' +
-        invSnap.docs.map(d => {const inv=d.data();return`<div class="staff-item"><div class="staff-av" style="background:var(--sf2);color:var(--tx2)">?</div><div style="flex:1"><div class="staff-name">${inv.name||'—'}</div><div class="staff-email">${inv.email}</div></div><span class="staff-role" style="background:rgba(245,158,11,.15);color:var(--wa)">Pending</span><button class="btn btn-d btn-xs" onclick="cancelInvite('${d.id}')" style="margin-left:6px">Cancel</button></div>`;}).join('');
+        '<div style="font-size:10px;color:var(--tx2);margin-bottom:8px">No emails are sent automatically — share the shop code yourself using the buttons below.</div>' +
+        invSnap.docs.map(d => {
+          const inv=d.data();
+          const msg = encodeURIComponent(`You've been invited to join ${inv.shopName||S.shopCode} on ElectroPro Manager as ${inv.role==='owner'?'an owner':'a cashier'}.\n\nShop code: ${S.shopCode}\nYour email: ${inv.email}\n\nOpen the app, tap "Join a Shop", and enter these details to get started.`);
+          return`<div class="staff-item"><div class="staff-av" style="background:var(--sf2);color:var(--tx2)">?</div><div style="flex:1"><div class="staff-name">${inv.name||'—'}</div><div class="staff-email">${inv.email}</div></div><span class="staff-role" style="background:rgba(245,158,11,.15);color:var(--wa)">Pending</span><a href="https://wa.me/?text=${msg}" target="_blank" class="btn btn-s btn-xs" style="margin-left:6px;text-decoration:none">Share</a><button class="btn btn-d btn-xs" onclick="cancelInvite('${d.id}')" style="margin-left:6px">Cancel</button></div>`;
+        }).join('');
     }
   } catch(e) {
     el.innerHTML = `<div style="color:var(--re);font-size:12px">Error: ${e.message}</div>`;
@@ -1564,21 +1697,28 @@ async function renderStaff() {
 }
 
 async function inviteStaff() {
-  const email = document.getElementById('inv-email').value.trim();
+  const emailRaw = document.getElementById('inv-email').value.trim();
+  const email = emailRaw.toLowerCase();
   const name  = document.getElementById('inv-name').value.trim();
   const role  = document.getElementById('inv-role').value;
   const errEl = document.getElementById('inv-err');
   if (!email) { errEl.textContent = 'Enter email address'; return; }
   errEl.textContent = '';
   try {
-    await db.collection('invites').add({
+    // Deterministic id (not auto-id) so doJoinShop can look this up with a
+    // single get() — no query permissions needed — and so Firestore rules
+    // can validate the same path when the invited user's docs get written.
+    const inviteId = S.shopCode + '_' + email;
+    await db.collection('invites').doc(inviteId).set({
       email, name, role, shopCode:S.shopCode,
       shopName: S.shopDoc?.shopName||S.shopCode,
       invitedBy: S.userDoc?.name||S.user?.email,
       status:'pending', createdAt:Date.now()
     });
     closeModal('inviteModal');
-    toast('Invite sent to '+email);
+    // There's no email backend wired up — nothing is actually sent.
+    // Be upfront about that and tell the owner what to do instead.
+    toast('Invite created — share the shop code with '+email+' so they can use "Join a Shop"');
     renderStaff();
   } catch(e) {
     errEl.textContent = 'Error: '+e.message;
