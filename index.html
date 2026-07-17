@@ -963,47 +963,58 @@ async function doJoinShop() {
   if (!name || !email || !pass || !code) { errEl.textContent = 'Fill in all fields'; return; }
   if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
   errEl.textContent = '';
-  btn.textContent = 'Checking invite…';
 
   const inviteId = code + '_' + email.toLowerCase();
 
+  // Same race-prevention as doCreateShop: onAuthStateChanged fires the
+  // instant the Auth account exists, before we've written the shop
+  // user doc or userShops cache doc — block bootUser until both exist.
+  _creatingShop = true;
+  btn.textContent = 'Creating account…';
+  let cred;
   try {
-    // Validate BEFORE creating any Auth account — invited users must
-    // never fall through to shop creation, and we don't want to leave
-    // behind an orphaned Auth account if there's no matching invite.
+    cred = await withTimeout(
+      auth.createUserWithEmailAndPassword(email, pass),
+      20000, 'Timed out creating your account — check your connection'
+    );
+  } catch(e) {
+    _creatingShop = false;
+    errEl.textContent = e.code === 'timeout' ? e.message : friendlyAuthError(e.code);
+    btn.textContent = 'Join Shop';
+    return;
+  }
+
+  // The invite can only be checked AFTER signing in — the Firestore rule
+  // for reading an invite requires request.auth to match its email, so
+  // checking it pre-signup (when request.auth is still null) is always
+  // denied. This is why "Join Shop" errored for every cashier before:
+  // the account never even got the chance to exist yet.
+  try {
+    btn.textContent = 'Checking invite…';
     const inviteSnap = await withTimeout(
       db.collection('invites').doc(inviteId).get(),
       15000, 'Timed out checking your invite — check your connection'
     );
     if (!inviteSnap.exists) {
-      errEl.textContent = 'No pending invite found for this email at this shop code. Ask your shop owner to invite you first.';
-      btn.textContent = 'Join Shop';
-      return;
+      throw { code: 'no-invite', message: 'No pending invite found for this email at this shop code. Ask your shop owner to invite you first.' };
     }
     const invite = inviteSnap.data();
     if (invite.status !== 'pending') {
-      errEl.textContent = invite.status === 'accepted'
+      throw { code: 'no-invite', message: invite.status === 'accepted'
         ? 'This invite has already been used — try signing in instead.'
-        : 'This invite is no longer valid. Ask your shop owner to re-invite you.';
-      btn.textContent = 'Join Shop';
-      return;
+        : 'This invite is no longer valid. Ask your shop owner to re-invite you.' };
     }
-
     btn.textContent = 'Joining…';
-    // Same race-prevention as doCreateShop: onAuthStateChanged fires the
-    // instant the Auth account exists, before we've written the shop
-    // user doc or userShops cache doc — block bootUser until both exist.
-    _creatingShop = true;
-    const cred = await withTimeout(
-      auth.createUserWithEmailAndPassword(email, pass),
-      20000, 'Timed out creating your account — check your connection'
-    );
     _creatingShop = false;
     await acceptInvite(inviteId, invite, cred.user, name);
 
   } catch(e) {
+    // Roll back the account we just created so a bad/missing invite
+    // doesn't leave an orphaned, shop-less Auth user behind.
+    try { await cred.user.delete(); } catch(_) {}
+    try { await auth.signOut(); } catch(_) {}
     _creatingShop = false;
-    errEl.textContent = e.code === 'timeout' ? e.message : (friendlyAuthError(e.code) || e.message);
+    errEl.textContent = (e.code === 'timeout' || e.code === 'no-invite') ? e.message : (friendlyAuthError(e.code) || e.message);
     btn.textContent = 'Join Shop';
   }
 }
