@@ -246,6 +246,21 @@ tr:last-child td{border-bottom:none;}
 .sheet-title{font-size:15px;font-weight:800;}
 .sheet-close{background:none;border:none;color:var(--tx2);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;}
 
+/* ── BARCODE SCANNER ── */
+.scan-overlay{display:none;position:fixed;inset:0;background:#000;z-index:2200;flex-direction:column;}
+.scan-overlay.open{display:flex;}
+.scan-video{flex:1;width:100%;object-fit:cover;background:#000;}
+.scan-hdr{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:14px;z-index:2;}
+.scan-hdr .sheet-close{background:rgba(0,0,0,.5);color:#fff;}
+.scan-hdr-title{color:#fff;font-weight:800;font-size:13px;background:rgba(0,0,0,.5);padding:6px 12px;border-radius:999px;}
+.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:78%;max-width:320px;aspect-ratio:5/3;border:2px solid var(--ac);border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.45);}
+.scan-line{position:absolute;left:4%;right:4%;top:0;height:2px;background:var(--ac);box-shadow:0 0 8px var(--ac);animation:scanSweep 1.8s ease-in-out infinite;}
+@keyframes scanSweep{0%,100%{top:6%;}50%{top:94%;}}
+.scan-fallback{position:absolute;bottom:0;left:0;right:0;background:var(--sf);border-radius:var(--r16) var(--r16) 0 0;padding:16px;z-index:2;}
+.scan-fallback-msg{font-size:11px;color:var(--tx2);margin-bottom:10px;text-align:center;}
+.scan-manual{display:flex;gap:8px;}
+.scan-manual input{flex:1;}
+
 /* ── INVOICE ── */
 .invoice{background:#fff;color:#111;border-radius:10px;padding:16px;font-size:12px;}
 .inv-hdr{text-align:center;border-bottom:2px solid #eee;padding-bottom:10px;margin-bottom:10px;}
@@ -496,7 +511,7 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     <!-- STOCK -->
     <div id="pg-stock" class="page">
       <div class="sec-head"><div class="sec-title">Inventory</div><button class="btn btn-p btn-sm" onclick="openAddItem()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Item</button></div>
-      <div class="search-wrap" style="margin-bottom:8px"><span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="stockQ" placeholder="Search items…" oninput="renderStock()"></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><div class="search-wrap" style="margin-bottom:0"><span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="stockQ" placeholder="Search items…" oninput="renderStock()"></div><button class="btn btn-s" style="width:38px;height:38px;padding:0;flex-shrink:0" onclick="openScanner('stock-search')" title="Scan barcode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></button></div>
       <div class="cat-row" id="stockCats"></div>
       <div class="card" style="padding:0"><div class="tbl-wrap"><table><thead><tr><th>Item</th><th>Cat</th><th>Stock</th><th>Cost</th><th>Price</th><th>Profit</th><th>Supplier</th><th></th></tr></thead><tbody id="stockTbody"></tbody></table></div></div>
     </div>
@@ -505,7 +520,7 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     <div id="pg-sales" class="page">
       <div class="sec-head"><div class="sec-title">Point of Sale</div><button class="btn btn-s btn-sm" onclick="toggleHistory()">History</button></div>
       <div id="posView">
-        <div class="search-wrap" style="margin-bottom:8px"><span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="posQ" placeholder="Search items to add…" oninput="renderPOS()"></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><div class="search-wrap" style="margin-bottom:0"><span class="search-ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="posQ" placeholder="Search items to add…" oninput="renderPOS()"></div><button class="btn btn-s" style="width:38px;height:38px;padding:0;flex-shrink:0" onclick="openScanner('pos')" title="Scan barcode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></button></div>
         <div class="cat-row" id="posCats"></div>
         <div class="pos-grid" id="posItems"></div>
         <!-- Floating cart pill — hidden while empty, tap to expand -->
@@ -651,6 +666,7 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     <div class="sheet-handle"></div>
     <div class="sheet-hdr"><div class="sheet-title" id="itemModalTitle">Add Item</div><button class="sheet-close" onclick="closeModal('itemModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="frow"><div class="fg"><label>Item Name *</label><input id="ii-name" placeholder="e.g. 3-way extension"></div></div>
+    <div class="frow"><div class="fg" style="flex:1"><label>Barcode</label><div style="display:flex;gap:6px"><input id="ii-barcode" placeholder="Scan or type barcode" style="flex:1"><button class="btn btn-s" style="width:38px;height:38px;padding:0;flex-shrink:0" onclick="openScanner('item-form')" title="Scan barcode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></button></div></div></div>
     <div class="frow"><div class="fg"><label>Category</label><select id="ii-cat"><option value="Electrical">Electrical</option><option value="Components">Components</option><option value="Power">Power &amp; Energy</option><option value="Installation">Installation</option><option value="Modules">Modules</option></select></div><div class="fg"><label>Supplier</label><select id="ii-sup"><option value="">-- None --</option></select></div></div>
     <div class="frow"><div class="fg"><label>Stock Qty</label><input type="number" id="ii-stock" min="0" placeholder="0"></div><div class="fg"><label>Reorder Level</label><input type="number" id="ii-reorder" min="0" placeholder="10"></div></div>
     <div class="frow"><div class="fg"><label>Cost Price (KSh)</label><input type="number" id="ii-cost" min="0" placeholder="0"></div><div class="fg"><label>Sell Price (KSh) *</label><input type="number" id="ii-price" min="0" placeholder="0"></div></div>
@@ -667,6 +683,23 @@ code{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:
     <div class="frow"><div class="fg"><label>Current Stock</label><input id="rs-cur" disabled></div><div class="fg"><label>Add Qty *</label><input type="number" id="rs-add" min="1" placeholder="50"></div></div>
     <div class="fg" style="margin-bottom:12px"><label>New Cost Price (KSh)</label><input type="number" id="rs-cost" placeholder="Leave blank to keep current"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-s" onclick="closeModal('restockModal')">Cancel</button><button class="btn btn-p" onclick="saveRestock()">Restock</button></div>
+  </div>
+</div>
+
+<!-- Barcode Scanner -->
+<div class="scan-overlay" id="scanOverlay">
+  <div class="scan-hdr">
+    <span class="scan-hdr-title" id="scanTitle">Scan barcode</span>
+    <button class="sheet-close" onclick="stopScanner()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <video id="scanVideo" class="scan-video" autoplay playsinline muted></video>
+  <div class="scan-frame" id="scanFrame"><div class="scan-line"></div></div>
+  <div class="scan-fallback" id="scanFallback" style="display:none">
+    <div class="scan-fallback-msg" id="scanFallbackMsg">Camera scanning isn't available — enter the code manually.</div>
+    <div class="scan-manual">
+      <input type="text" id="scanManualInput" placeholder="Enter barcode" onkeydown="if(event.key==='Enter')submitManualScan()">
+      <button class="btn btn-p" onclick="submitManualScan()">Use</button>
+    </div>
   </div>
 </div>
 
@@ -1415,7 +1448,7 @@ function renderDash() {
 function renderStock() {
   pills('stockCats','stockCat',renderStock);
   const q = document.getElementById('stockQ').value.toLowerCase();
-  const list = S.items.filter(i=>(S.stockCat==='All'||i.cat===S.stockCat)&&(!q||i.name.toLowerCase().includes(q)));
+  const list = S.items.filter(i=>(S.stockCat==='All'||i.cat===S.stockCat)&&(!q||i.name.toLowerCase().includes(q)||(i.barcode&&i.barcode.toLowerCase().includes(q))));
   const tb = document.getElementById('stockTbody');
   if (!list.length) { tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--tx2);padding:24px">No items found</td></tr>'; return; }
   const ICO_EDIT = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
@@ -1439,7 +1472,7 @@ function renderStock() {
 function openAddItem() {
   S.editItem = null;
   document.getElementById('itemModalTitle').textContent = 'Add Item';
-  ['ii-name','ii-stock','ii-cost','ii-price'].forEach(id=>document.getElementById(id).value='');
+  ['ii-name','ii-stock','ii-cost','ii-price','ii-barcode'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ii-cat').value = 'Electrical';
   document.getElementById('ii-reorder').value = S.localPrefs.reorder || 10;
   refreshSupSel(); openModal('itemModal');
@@ -1448,6 +1481,7 @@ function openEditItem(id) {
   const it = S.items.find(i=>i.id===id); S.editItem = id;
   document.getElementById('itemModalTitle').textContent = 'Edit Item';
   document.getElementById('ii-name').value = it.name;
+  document.getElementById('ii-barcode').value = it.barcode||'';
   document.getElementById('ii-cat').value = it.cat;
   document.getElementById('ii-stock').value = it.stock;
   document.getElementById('ii-reorder').value = it.reorder;
@@ -1464,7 +1498,13 @@ async function saveItem() {
   if (!name) { toast('Enter item name'); return; }
   const price = parseFloat(document.getElementById('ii-price').value)||0;
   if (!price) { toast('Enter sell price'); return; }
+  const barcode = document.getElementById('ii-barcode').value.trim();
+  if (barcode) {
+    const dupe = S.items.find(i=>i.barcode===barcode && i.id!==S.editItem);
+    if (dupe) { toast('That barcode is already used by "'+dupe.name+'"'); return; }
+  }
   const d = { name, cat:document.getElementById('ii-cat').value,
+    barcode: barcode || null,
     stock:parseInt(document.getElementById('ii-stock').value)||0,
     reorder:parseInt(document.getElementById('ii-reorder').value)||10,
     cost:parseFloat(document.getElementById('ii-cost').value)||0,
@@ -1497,6 +1537,92 @@ async function saveRestock() {
   if (nc > 0) upd.cost = nc;
   await db.collection('shops').doc(S.shopCode).collection('items').doc(S.restockId).update(upd);
   closeModal('restockModal'); toast('Restocked '+qty+' units');
+}
+
+// ── BARCODE SCANNER ──────────────────────────────────
+// Uses the native BarcodeDetector API (supported on Chrome/Android
+// WebView, which is what this PWA runs in). Falls back to a manual
+// text-entry field on browsers that don't support it, so scanning is
+// never a hard dependency for using the app.
+let _scanStream = null, _scanRAF = null, _scanDetector = null, _scanCtx = null, _scanLastTick = 0;
+
+async function openScanner(context) {
+  _scanCtx = context;
+  document.getElementById('scanTitle').textContent =
+    context==='pos' ? 'Scan item to add' :
+    context==='item-form' ? 'Scan item barcode' : 'Scan to find item';
+  document.getElementById('scanManualInput').value = '';
+  document.getElementById('scanFallback').style.display = 'none';
+  document.getElementById('scanFrame').style.display = 'block';
+  document.getElementById('scanOverlay').classList.add('open');
+
+  if (!('BarcodeDetector' in window) || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showScanFallback('Camera scanning isn\'t supported on this browser — enter the code manually.');
+    return;
+  }
+  try {
+    _scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.getElementById('scanVideo');
+    video.srcObject = _scanStream;
+    _scanDetector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code','itf','codabar'] });
+    _scanRAF = requestAnimationFrame(scanTick);
+  } catch(e) {
+    showScanFallback('Couldn\'t access the camera (' + (e.message||'permission denied') + ') — enter the code manually.');
+  }
+}
+async function scanTick(ts) {
+  if (!_scanStream) return;
+  if (ts - _scanLastTick < 150) { _scanRAF = requestAnimationFrame(scanTick); return; }
+  _scanLastTick = ts;
+  const video = document.getElementById('scanVideo');
+  if (video.readyState >= 2) {
+    try {
+      const codes = await _scanDetector.detect(video);
+      if (codes.length) { onScanDetected(codes[0].rawValue); return; }
+    } catch(e) { /* transient decode errors are normal between frames */ }
+  }
+  _scanRAF = requestAnimationFrame(scanTick);
+}
+function showScanFallback(msg) {
+  document.getElementById('scanFrame').style.display = 'none';
+  document.getElementById('scanFallbackMsg').textContent = msg;
+  document.getElementById('scanFallback').style.display = 'block';
+  setTimeout(()=>document.getElementById('scanManualInput').focus(), 100);
+}
+function submitManualScan() {
+  const v = document.getElementById('scanManualInput').value.trim();
+  if (!v) return;
+  onScanDetected(v);
+}
+function onScanDetected(code) {
+  stopScanner();
+  handleScanResult(code.trim(), _scanCtx);
+}
+function stopScanner() {
+  if (_scanRAF) cancelAnimationFrame(_scanRAF);
+  if (_scanStream) _scanStream.getTracks().forEach(t=>t.stop());
+  _scanStream = null; _scanRAF = null; _scanDetector = null;
+  document.getElementById('scanOverlay').classList.remove('open');
+}
+function handleScanResult(code, context) {
+  if (context === 'item-form') {
+    document.getElementById('ii-barcode').value = code;
+    return;
+  }
+  const it = S.items.find(i => i.barcode === code);
+  if (context === 'pos') {
+    if (!it) { toast('No item matches barcode '+code); return; }
+    if (!it.stock) { toast(it.name+' is out of stock'); return; }
+    addCart(it.id);
+    toast('Added '+it.name);
+    return;
+  }
+  if (context === 'stock-search') {
+    document.getElementById('stockQ').value = it ? it.name : code;
+    renderStock();
+    if (!it) toast('No item matches barcode '+code);
+    return;
+  }
 }
 
 // ── POS ───────────────────────────────────────────────
