@@ -1,0 +1,8 @@
+{
+  "name": "Krystal Update",
+  "short_name": "Update",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}
